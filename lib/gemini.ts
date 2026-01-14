@@ -32,7 +32,7 @@ export interface GenerationResult {
 export async function generateWithLogprobs({
   prompt,
   systemInstruction,
-  maxTokens = 20,
+  maxTokens = 50,
   temperature = 0.9,
   topP = 0.95,
   topK = 40,
@@ -42,7 +42,15 @@ export async function generateWithLogprobs({
     model: "gemini-2.0-flash-exp"
   });
 
-  const defaultSystemInstruction = `Continue the user's text naturally. Rules: 1) Do NOT repeat any part of the input. 2) Do NOT use markdown formatting. 3) Output only the continuation words.`;
+  const defaultSystemInstruction = `You are a text continuation assistant. The user will provide incomplete text, and you must continue it naturally.
+
+CRITICAL: Your output is concatenated directly to the user's input with no separator. If the user's text ends with a complete word (like "the" or "a"), your first token MUST start with a space. Only omit the leading space if the user's text ends with a space or mid-word.
+
+Rules:
+1. Write 1-2 complete sentences to finish the thought naturally.
+2. Do NOT repeat the ending of the user's input at the start of your response.
+3. Do NOT use markdown formatting, bullet points, or special characters.
+4. Write in a natural, flowing style that matches the tone of the input.`;
 
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],

@@ -7,7 +7,15 @@ export const maxDuration = 30;
 export async function POST(request: Request) {
   try {
     // Parse JSON body
-    const { prompt, systemInstruction, maxTokens } = await request.json();
+    const {
+      prompt,
+      systemInstruction,
+      maxTokens,
+      temperature,
+      topP,
+      topK,
+      numLogprobs
+    } = await request.json();
 
     // Validate input
     if (!prompt || typeof prompt !== 'string') {
@@ -29,7 +37,11 @@ export async function POST(request: Request) {
     const result = await generateWithLogprobs({
       prompt,
       systemInstruction: systemInstruction || undefined,
-      maxTokens: maxTokens || 20
+      maxTokens: maxTokens || 20,
+      temperature: temperature !== undefined ? temperature : undefined,
+      topP: topP !== undefined ? topP : undefined,
+      topK: topK !== undefined ? topK : undefined,
+      numLogprobs: numLogprobs !== undefined ? numLogprobs : undefined,
     });
 
     // Return generation + logprobs
