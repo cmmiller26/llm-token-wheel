@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import TokenWheel from "@/components/TokenWheel";
 import PromptInput from "@/components/PromptInput";
+import SettingsPanel from "@/components/SettingsPanel";
 import BuiltTextDisplay from "@/components/BuiltTextDisplay";
 import GhostConfirmation from "@/components/GhostConfirmation";
 import CompletionBanner from "@/components/CompletionBanner";
 import { stitchToken, stitchTokens } from "@/lib/utils";
+import { DEFAULT_TEMPERATURE, DEFAULT_SYSTEM_INSTRUCTION } from "@/lib/constants";
 
 interface GenerationData {
   id: number; // Unique ID for each generation to ensure wheel remounts
@@ -43,6 +45,39 @@ export default function Home() {
   const [appState, setAppState] = useState<AppState>({ type: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
+
+  // Settings state
+  const [temperature, setTemperature] = useState(DEFAULT_TEMPERATURE);
+  const [systemInstruction, setSystemInstruction] = useState(DEFAULT_SYSTEM_INSTRUCTION);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedTemp = localStorage.getItem("tokenwheel-temperature");
+      if (savedTemp !== null) {
+        setTemperature(parseFloat(savedTemp));
+      }
+      const savedInstruction = localStorage.getItem("tokenwheel-system-instruction");
+      if (savedInstruction !== null) {
+        setSystemInstruction(savedInstruction);
+      }
+    }
+  }, []);
+
+  // Save temperature to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tokenwheel-temperature", temperature.toString());
+    }
+  }, [temperature]);
+
+  // Save system instruction to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tokenwheel-system-instruction", systemInstruction);
+    }
+  }, [systemInstruction]);
 
   // Refs to access latest state in callbacks (avoids stale closures)
   const appStateRef = useRef(appState);
@@ -81,6 +116,8 @@ export default function Home() {
         body: JSON.stringify({
           prompt: inputPrompt,
           maxTokens: 50,
+          temperature,
+          systemInstruction,
         }),
       });
 
@@ -104,7 +141,7 @@ export default function Home() {
       setAppState({ type: "idle" });
       return null;
     }
-  }, []);
+  }, [temperature, systemInstruction]);
 
   // Start a new generation
   const handleStart = useCallback(async () => {
@@ -272,11 +309,21 @@ export default function Home() {
 
         {/* Input Section - Only show in idle state */}
         {appState.type === "idle" && (
-          <PromptInput
-            prompt={prompt}
-            onPromptChange={setPrompt}
-            onStart={handleStart}
-          />
+          <>
+            <PromptInput
+              prompt={prompt}
+              onPromptChange={setPrompt}
+              onStart={handleStart}
+            />
+            <SettingsPanel
+              temperature={temperature}
+              onTemperatureChange={setTemperature}
+              systemInstruction={systemInstruction}
+              onSystemInstructionChange={setSystemInstruction}
+              isOpen={showSettings}
+              onToggle={() => setShowSettings(!showSettings)}
+            />
+          </>
         )}
 
         {/* Loading State */}
@@ -369,7 +416,7 @@ export default function Home() {
             Debug Page
           </a>
           {" · "}
-          Powered by Gemini Flash
+          Powered by Gemini 2.0 Flash
         </div>
       </div>
     </div>

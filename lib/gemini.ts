@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { DEFAULT_SYSTEM_INSTRUCTION } from './constants';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -42,16 +43,6 @@ export async function generateWithLogprobs({
     model: "gemini-2.0-flash-exp"
   });
 
-  const defaultSystemInstruction = `You are a text continuation assistant. The user will provide incomplete text, and you must continue it naturally.
-
-CRITICAL: Your output is concatenated directly to the user's input with no separator. If the user's text ends with a complete word (like "the" or "a"), your first token MUST start with a space. Only omit the leading space if the user's text ends with a space or mid-word.
-
-Rules:
-1. Write 1-2 complete sentences to finish the thought naturally.
-2. Do NOT repeat the ending of the user's input at the start of your response.
-3. Do NOT use markdown formatting, bullet points, or special characters.
-4. Write in a natural, flowing style that matches the tone of the input.`;
-
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
@@ -62,7 +53,7 @@ Rules:
       responseLogprobs: true,
       logprobs: numLogprobs
     },
-    systemInstruction: systemInstruction || defaultSystemInstruction
+    systemInstruction: systemInstruction || DEFAULT_SYSTEM_INSTRUCTION
   });
 
   const response = result.response;
