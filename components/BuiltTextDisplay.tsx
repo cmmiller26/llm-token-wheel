@@ -21,7 +21,7 @@ export default function BuiltTextDisplay({
           {selectedTokens.length} tokens selected
         </span>
       </div>
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg min-h-[60px]">
+      <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg min-h-15">
         <span className="text-zinc-500 dark:text-zinc-400">{prompt}</span>
         <span className="text-zinc-900 dark:text-zinc-100 font-medium">
           {selectedTokens.join("")}

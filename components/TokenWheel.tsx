@@ -41,7 +41,7 @@ function createWedgePath(
   centerY: number,
   radius: number,
   startAngle: number,
-  endAngle: number
+  endAngle: number,
 ): string {
   const angle = endAngle - startAngle;
 
@@ -76,7 +76,7 @@ function createWedgePath(
 function calculateTargetRotation(
   wedges: WedgeData[],
   targetToken: string,
-  currentRotation: number
+  currentRotation: number,
 ): number {
   const targetWedge = wedges.find((w) => w.token === targetToken);
   if (!targetWedge) {
@@ -125,8 +125,10 @@ export default function TokenWheel({
   const mountedRef = useRef(true);
 
   // Update refs on every render to keep them current
-  chosenTokenRef.current = chosenToken;
-  onTokenSelectRef.current = onTokenSelect;
+  useEffect(() => {
+    chosenTokenRef.current = chosenToken;
+    onTokenSelectRef.current = onTokenSelect;
+  }, [chosenToken, onTokenSelect]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -159,7 +161,7 @@ export default function TokenWheel({
     const targetRotation = calculateTargetRotation(
       wedges,
       chosenTokenRef.current,
-      rotation
+      rotation,
     );
     setRotation(targetRotation);
 
@@ -189,7 +191,7 @@ export default function TokenWheel({
       setSelectedToken(token);
       onTokenSelectRef.current(token);
     },
-    [isSpinning, disabled]
+    [isSpinning, disabled],
   );
 
   return (
@@ -288,7 +290,7 @@ export default function TokenWheel({
                       center,
                       radius,
                       wedge.startAngle,
-                      wedge.endAngle
+                      wedge.endAngle,
                     )}
                     fill={color}
                     stroke="#1F2937"
@@ -297,8 +299,8 @@ export default function TokenWheel({
                       filter: isSelected
                         ? "brightness(1.2)"
                         : isChosen
-                        ? "brightness(1.1)"
-                        : "none",
+                          ? "brightness(1.1)"
+                          : "none",
                       cursor:
                         disabled || isSpinning ? "not-allowed" : "pointer",
                       transition: "filter 0.2s ease",
@@ -313,27 +315,10 @@ export default function TokenWheel({
                       e.currentTarget.style.filter = isSelected
                         ? "brightness(1.2)"
                         : isChosen
-                        ? "brightness(1.1)"
-                        : "none";
+                          ? "brightness(1.1)"
+                          : "none";
                     }}
                   />
-
-                  {/* Highlight glow for chosen token (AI's pick) */}
-                  {isChosen && !isSpinning && (
-                    <path
-                      d={createWedgePath(
-                        center,
-                        center,
-                        radius,
-                        wedge.startAngle,
-                        wedge.endAngle
-                      )}
-                      fill="none"
-                      stroke="#fbbf24"
-                      strokeWidth="4"
-                      className="pulse-glow pointer-events-none"
-                    />
-                  )}
 
                   {/* Wedge label (only for wedges > 20 degrees) */}
                   {wedge.angle > 20 && (
@@ -344,7 +329,7 @@ export default function TokenWheel({
                           0.65 *
                           Math.cos(
                             ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
-                              (Math.PI / 180)
+                              (Math.PI / 180),
                           )
                       }
                       y={
@@ -353,7 +338,7 @@ export default function TokenWheel({
                           0.65 *
                           Math.sin(
                             ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
-                              (Math.PI / 180)
+                              (Math.PI / 180),
                           )
                       }
                       textAnchor="middle"
@@ -372,6 +357,28 @@ export default function TokenWheel({
                 </g>
               );
             })}
+
+            {/* Highlight glow for chosen token - rendered after all wedges so it's always on top */}
+            {!isSpinning &&
+              wedges.map((wedge) => {
+                if (wedge.token !== chosenToken || wedge.angle < 1) return null;
+                return (
+                  <path
+                    key={`highlight-${wedge.token}`}
+                    d={createWedgePath(
+                      center,
+                      center,
+                      radius,
+                      wedge.startAngle,
+                      wedge.endAngle,
+                    )}
+                    fill="none"
+                    stroke="#fbbf24"
+                    strokeWidth="4"
+                    className="pulse-glow pointer-events-none"
+                  />
+                );
+              })}
           </g>
 
           {/* Center circle */}

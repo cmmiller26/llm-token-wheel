@@ -1,55 +1,19 @@
 /**
  * Token Stitching Utilities
  *
- * Handles the complexity of joining tokens into readable text.
- * Gemini tokens may or may not include leading spaces.
+ * Gemini tokens already include proper spacing (e.g., " mat" has a leading
+ * space for word boundaries, "ing" has no space for continuations).
+ * We simply concatenate tokens directly.
  */
 
 /**
- * Determines if a space is needed between context and new token.
- * @param context - The existing text
- * @param token - The token to append
- * @returns Whether to insert a space
- */
-function needsSpaceBefore(context: string, token: string): boolean {
-  // If token already starts with space, no need to add one
-  if (token.startsWith(' ') || token.startsWith('\n')) {
-    return false;
-  }
-
-  // If context is empty, no space needed
-  if (!context || context.length === 0) {
-    return false;
-  }
-
-  const lastChar = context[context.length - 1];
-
-  // No space after these characters
-  const noSpaceAfter = [' ', '\n', '\t', '(', '[', '{', '"', "'", '-'];
-  if (noSpaceAfter.includes(lastChar)) {
-    return false;
-  }
-
-  // No space before punctuation
-  const punctuation = ['.', ',', '!', '?', ':', ';', ')', ']', '}', '"', "'"];
-  if (punctuation.includes(token[0])) {
-    return false;
-  }
-
-  // Otherwise, we need a space
-  return true;
-}
-
-/**
- * Appends a token to context with smart spacing.
+ * Appends a token to context.
+ * Gemini tokens already include proper spacing, so we just concatenate.
  * @param context - The existing text
  * @param token - The token to append
  * @returns The combined text
  */
 export function stitchToken(context: string, token: string): string {
-  if (needsSpaceBefore(context, token)) {
-    return context + ' ' + token;
-  }
   return context + token;
 }
 

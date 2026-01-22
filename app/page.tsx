@@ -78,7 +78,10 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.userMessage || data.error || "Generation failed");
+        // Include details in dev mode for debugging
+        const errorMsg = data.userMessage || data.error || "Generation failed";
+        const details = data.details ? ` (${data.details})` : "";
+        throw new Error(errorMsg + details);
       }
 
       return {
