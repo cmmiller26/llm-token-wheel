@@ -427,10 +427,6 @@ export default function Home() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
-          <a href="/debug" className="hover:underline">
-            Debug Page
-          </a>
-          {' · '}
           Powered by Gemini 2.0 Flash
         </div>
       </div>
