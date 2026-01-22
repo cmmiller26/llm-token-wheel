@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   DEFAULT_TEMPERATURE,
   DEFAULT_SYSTEM_INSTRUCTION,
   TEMPERATURE_CONFIG,
-} from "@/lib/constants";
+} from '@/lib/constants';
 
 interface SettingsPanelProps {
   temperature: number;
@@ -26,7 +26,8 @@ export default function SettingsPanel({
 }: SettingsPanelProps) {
   const [showSystemInstruction, setShowSystemInstruction] = useState(false);
   const isTemperatureDefault = temperature === DEFAULT_TEMPERATURE;
-  const isSystemInstructionDefault = systemInstruction === DEFAULT_SYSTEM_INSTRUCTION;
+  const isSystemInstructionDefault =
+    systemInstruction === DEFAULT_SYSTEM_INSTRUCTION;
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg mb-6 overflow-hidden">
@@ -39,7 +40,7 @@ export default function SettingsPanel({
         </span>
         <svg
           className={`w-5 h-5 text-zinc-400 transition-transform ${
-            isOpen ? "rotate-180" : ""
+            isOpen ? 'rotate-180' : ''
           }`}
           fill="none"
           viewBox="0 0 24 24"
@@ -60,7 +61,7 @@ export default function SettingsPanel({
           <div className="pt-4">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Temperature:{" "}
+                Temperature:{' '}
                 <span className="text-zinc-500 dark:text-zinc-400">
                   {temperature.toFixed(2)}
                 </span>
@@ -107,7 +108,7 @@ export default function SettingsPanel({
               </span>
               <svg
                 className={`w-4 h-4 text-zinc-400 transition-transform ${
-                  showSystemInstruction ? "rotate-180" : ""
+                  showSystemInstruction ? 'rotate-180' : ''
                 }`}
                 fill="none"
                 viewBox="0 0 24 24"
@@ -127,7 +128,9 @@ export default function SettingsPanel({
                 <div className="flex justify-end mb-2">
                   {!isSystemInstructionDefault && (
                     <button
-                      onClick={() => onSystemInstructionChange(DEFAULT_SYSTEM_INSTRUCTION)}
+                      onClick={() =>
+                        onSystemInstructionChange(DEFAULT_SYSTEM_INSTRUCTION)
+                      }
                       disabled={disabled}
                       className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

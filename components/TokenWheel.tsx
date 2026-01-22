@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { convertLogprobsToWedges, formatTokenForDisplay } from "@/lib/utils";
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { convertLogprobsToWedges, formatTokenForDisplay } from '@/lib/utils';
 
 // Color palette for wheel wedges (high contrast, accessible)
 const WEDGE_COLORS = [
-  "#3B82F6", // blue-500
-  "#10B981", // emerald-500
-  "#F59E0B", // amber-500
-  "#EF4444", // red-500
-  "#8B5CF6", // violet-500
-  "#EC4899", // pink-500
-  "#06B6D4", // cyan-500
-  "#84CC16", // lime-500
-  "#F97316", // orange-500
-  "#6366F1", // indigo-500
+  '#3B82F6', // blue-500
+  '#10B981', // emerald-500
+  '#F59E0B', // amber-500
+  '#EF4444', // red-500
+  '#8B5CF6', // violet-500
+  '#EC4899', // pink-500
+  '#06B6D4', // cyan-500
+  '#84CC16', // lime-500
+  '#F97316', // orange-500
+  '#6366F1', // indigo-500
 ];
 
 interface TokenWheelProps {
@@ -41,7 +41,7 @@ function createWedgePath(
   centerY: number,
   radius: number,
   startAngle: number,
-  endAngle: number,
+  endAngle: number
 ): string {
   const angle = endAngle - startAngle;
 
@@ -76,11 +76,11 @@ function createWedgePath(
 function calculateTargetRotation(
   wedges: WedgeData[],
   targetToken: string,
-  currentRotation: number,
+  currentRotation: number
 ): number {
   const targetWedge = wedges.find((w) => w.token === targetToken);
   if (!targetWedge) {
-    console.warn("Target token not found in wedges:", targetToken);
+    console.warn('Target token not found in wedges:', targetToken);
     return currentRotation;
   }
 
@@ -161,7 +161,7 @@ export default function TokenWheel({
     const targetRotation = calculateTargetRotation(
       wedges,
       chosenTokenRef.current,
-      rotation,
+      rotation
     );
     setRotation(targetRotation);
 
@@ -191,7 +191,7 @@ export default function TokenWheel({
       setSelectedToken(token);
       onTokenSelectRef.current(token);
     },
-    [isSpinning, disabled],
+    [isSpinning, disabled]
   );
 
   return (
@@ -229,17 +229,17 @@ export default function TokenWheel({
         {/* Pointer */}
         <div
           className={`absolute z-10 left-1/2 -translate-x-1/2 -top-1 ${
-            pointerBounce ? "pointer-bounce" : ""
+            pointerBounce ? 'pointer-bounce' : ''
           }`}
-          style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
+          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
         >
           <div
             style={{
               width: 0,
               height: 0,
-              borderLeft: "15px solid transparent",
-              borderRight: "15px solid transparent",
-              borderTop: "25px solid #e74c3c",
+              borderLeft: '15px solid transparent',
+              borderRight: '15px solid transparent',
+              borderTop: '25px solid #e74c3c',
             }}
           />
         </div>
@@ -268,8 +268,8 @@ export default function TokenWheel({
               transform: `rotate(${rotation}deg)`,
               transformOrigin: `${center}px ${center}px`,
               transition: isSpinning
-                ? "transform 4s cubic-bezier(0.15, 0.5, 0.2, 1)"
-                : "none",
+                ? 'transform 4s cubic-bezier(0.15, 0.5, 0.2, 1)'
+                : 'none',
             }}
           >
             {/* Wedges */}
@@ -290,33 +290,33 @@ export default function TokenWheel({
                       center,
                       radius,
                       wedge.startAngle,
-                      wedge.endAngle,
+                      wedge.endAngle
                     )}
                     fill={color}
                     stroke="#1F2937"
                     strokeWidth="1.5"
                     style={{
                       filter: isSelected
-                        ? "brightness(1.2)"
+                        ? 'brightness(1.2)'
                         : isChosen
-                          ? "brightness(1.1)"
-                          : "none",
+                          ? 'brightness(1.1)'
+                          : 'none',
                       cursor:
-                        disabled || isSpinning ? "not-allowed" : "pointer",
-                      transition: "filter 0.2s ease",
+                        disabled || isSpinning ? 'not-allowed' : 'pointer',
+                      transition: 'filter 0.2s ease',
                     }}
                     onClick={() => handleWedgeClick(wedge.token)}
                     onMouseEnter={(e) => {
                       if (!isSpinning && !disabled) {
-                        e.currentTarget.style.filter = "brightness(1.15)";
+                        e.currentTarget.style.filter = 'brightness(1.15)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.filter = isSelected
-                        ? "brightness(1.2)"
+                        ? 'brightness(1.2)'
                         : isChosen
-                          ? "brightness(1.1)"
-                          : "none";
+                          ? 'brightness(1.1)'
+                          : 'none';
                     }}
                   />
 
@@ -329,7 +329,7 @@ export default function TokenWheel({
                           0.65 *
                           Math.cos(
                             ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
-                              (Math.PI / 180),
+                              (Math.PI / 180)
                           )
                       }
                       y={
@@ -338,7 +338,7 @@ export default function TokenWheel({
                           0.65 *
                           Math.sin(
                             ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
-                              (Math.PI / 180),
+                              (Math.PI / 180)
                           )
                       }
                       textAnchor="middle"
@@ -348,7 +348,7 @@ export default function TokenWheel({
                       fontWeight="600"
                       className="pointer-events-none select-none"
                       style={{
-                        textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                       }}
                     >
                       {formatTokenForDisplay(wedge.token)}
@@ -370,7 +370,7 @@ export default function TokenWheel({
                       center,
                       radius,
                       wedge.startAngle,
-                      wedge.endAngle,
+                      wedge.endAngle
                     )}
                     fill="none"
                     stroke="#fbbf24"
@@ -397,19 +397,19 @@ export default function TokenWheel({
             cx={center}
             cy={center}
             r={innerRadius - 5}
-            fill={isSpinning ? "#4B5563" : "#3B82F6"}
+            fill={isSpinning ? '#4B5563' : '#3B82F6'}
             style={{
-              cursor: isSpinning || disabled ? "not-allowed" : "pointer",
-              transition: "fill 0.2s ease",
+              cursor: isSpinning || disabled ? 'not-allowed' : 'pointer',
+              transition: 'fill 0.2s ease',
             }}
             onClick={handleSpin}
             onMouseEnter={(e) => {
               if (!isSpinning && !disabled) {
-                e.currentTarget.style.fill = "#60a5fa";
+                e.currentTarget.style.fill = '#60a5fa';
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.fill = isSpinning ? "#4B5563" : "#3B82F6";
+              e.currentTarget.style.fill = isSpinning ? '#4B5563' : '#3B82F6';
             }}
           />
 
@@ -424,7 +424,7 @@ export default function TokenWheel({
             fontWeight="700"
             className="pointer-events-none select-none"
           >
-            {isSpinning ? "..." : "SPIN"}
+            {isSpinning ? '...' : 'SPIN'}
           </text>
         </svg>
       </div>
@@ -436,7 +436,7 @@ export default function TokenWheel({
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             Highlighted = AI&apos;s choice
           </span>
-          {" · "}
+          {' · '}
           Click a wedge or SPIN
         </div>
         <div className="flex flex-wrap gap-1 justify-center">
@@ -452,18 +452,18 @@ export default function TokenWheel({
                   transition-all duration-200
                   ${
                     isChosen
-                      ? "ring-2 ring-amber-400 ring-offset-1 bg-amber-50 dark:bg-amber-950"
-                      : ""
+                      ? 'ring-2 ring-amber-400 ring-offset-1 bg-amber-50 dark:bg-amber-950'
+                      : ''
                   }
                   ${
                     selectedToken === wedge.token
-                      ? "ring-2 ring-blue-500 ring-offset-1"
-                      : ""
+                      ? 'ring-2 ring-blue-500 ring-offset-1'
+                      : ''
                   }
                   ${
                     isSpinning || disabled
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer'
                   }
                 `}
               >

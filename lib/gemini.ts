@@ -37,23 +37,23 @@ export async function generateWithLogprobs({
   temperature = 0.9,
   topP = 0.95,
   topK = 40,
-  numLogprobs = 8
+  numLogprobs = 8,
 }: GenerationOptions): Promise<GenerationResult> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-exp"
+    model: 'gemini-2.0-flash-exp',
   });
 
   const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       temperature,
       topP,
       topK,
       maxOutputTokens: maxTokens,
       responseLogprobs: true,
-      logprobs: numLogprobs
+      logprobs: numLogprobs,
     },
-    systemInstruction: systemInstruction || DEFAULT_SYSTEM_INSTRUCTION
+    systemInstruction: systemInstruction || DEFAULT_SYSTEM_INSTRUCTION,
   });
 
   const response = result.response;
@@ -84,29 +84,34 @@ export async function generateWithLogprobs({
   }
 
   // Extract tokens
-  const tokens = logprobsResult.chosenCandidates.map(c => c.token);
+  const tokens = logprobsResult.chosenCandidates.map((c) => c.token);
 
   // Extract logprobs by position
-  const logprobsByPosition = logprobsResult.topCandidates.map(positionData => {
-    // Convert to object: { token: probability }
-    const probsAtPosition: Record<string, number> = {};
-    positionData.candidates.forEach(c => {
-      probsAtPosition[c.token] = Math.exp(c.logProbability);
-    });
+  const logprobsByPosition = logprobsResult.topCandidates.map(
+    (positionData) => {
+      // Convert to object: { token: probability }
+      const probsAtPosition: Record<string, number> = {};
+      positionData.candidates.forEach((c) => {
+        probsAtPosition[c.token] = Math.exp(c.logProbability);
+      });
 
-    // Normalize to ensure sum = 1.0
-    const total = Object.values(probsAtPosition).reduce((sum, p) => sum + p, 0);
-    const normalized: Record<string, number> = {};
-    Object.entries(probsAtPosition).forEach(([token, prob]) => {
-      normalized[token] = prob / total;
-    });
+      // Normalize to ensure sum = 1.0
+      const total = Object.values(probsAtPosition).reduce(
+        (sum, p) => sum + p,
+        0
+      );
+      const normalized: Record<string, number> = {};
+      Object.entries(probsAtPosition).forEach(([token, prob]) => {
+        normalized[token] = prob / total;
+      });
 
-    return normalized;
-  });
+      return normalized;
+    }
+  );
 
   return {
     text: response.text(),
     tokens,
-    logprobsByPosition
+    logprobsByPosition,
   };
 }

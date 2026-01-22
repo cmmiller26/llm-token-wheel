@@ -23,8 +23,14 @@ export function stitchToken(context: string, token: string): string {
  * @param initialContext - Optional starting context
  * @returns The combined text
  */
-export function stitchTokens(tokens: string[], initialContext: string = ''): string {
-  return tokens.reduce((text, token) => stitchToken(text, token), initialContext);
+export function stitchTokens(
+  tokens: string[],
+  initialContext: string = ''
+): string {
+  return tokens.reduce(
+    (text, token) => stitchToken(text, token),
+    initialContext
+  );
 }
 
 /**
@@ -80,7 +86,7 @@ export function convertLogprobsToWedges(logprobs: Record<string, number>): {
       probability,
       angle,
       startAngle,
-      endAngle
+      endAngle,
     };
   });
 }

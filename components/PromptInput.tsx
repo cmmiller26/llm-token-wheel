@@ -6,10 +6,10 @@ interface PromptInputProps {
 }
 
 const QUICK_PROMPTS = [
-  "The cat sat on the",
-  "Once upon a time",
-  "In a world where",
-  "She opened the door and",
+  'The cat sat on the',
+  'Once upon a time',
+  'In a world where',
+  'She opened the door and',
 ];
 
 export default function PromptInput({

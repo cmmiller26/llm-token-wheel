@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import GenerationForm from "@/components/debug/GenerationForm";
-import SimulationPanel from "@/components/debug/SimulationPanel";
-import TokenVisualization from "@/components/debug/TokenVisualization";
-import ApiHistory from "@/components/debug/ApiHistory";
+import { useState } from 'react';
+import GenerationForm from '@/components/debug/GenerationForm';
+import SimulationPanel from '@/components/debug/SimulationPanel';
+import TokenVisualization from '@/components/debug/TokenVisualization';
+import ApiHistory from '@/components/debug/ApiHistory';
 
 interface GenerationResponse {
   success: boolean;
@@ -29,8 +29,8 @@ interface HistoryItem {
 
 export default function DebugPage() {
   // Form state
-  const [prompt, setPrompt] = useState("The cat sat on the");
-  const [systemInstruction, setSystemInstruction] = useState("");
+  const [prompt, setPrompt] = useState('The cat sat on the');
+  const [systemInstruction, setSystemInstruction] = useState('');
   const [maxTokens, setMaxTokens] = useState(50);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [temperature, setTemperature] = useState(0.9);
@@ -59,9 +59,9 @@ export default function DebugPage() {
     const startTime = Date.now();
 
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
           systemInstruction: systemInstruction || undefined,
@@ -96,8 +96,8 @@ export default function DebugPage() {
       }
     } catch (err) {
       setError({
-        error: "Network error",
-        details: err instanceof Error ? err.message : "Unknown error",
+        error: 'Network error',
+        details: err instanceof Error ? err.message : 'Unknown error',
       });
       setResponse(null);
     } finally {
@@ -152,16 +152,16 @@ export default function DebugPage() {
 
     // Need to regenerate from this point!
     // Build the new prompt: original prompt + all selected tokens so far (including this one)
-    const newPrompt = prompt + newSelectedTokens.join("");
+    const newPrompt = prompt + newSelectedTokens.join('');
 
     setLoading(true);
     setError(null);
     const startTime = Date.now();
 
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: newPrompt,
           systemInstruction: systemInstruction || undefined,
@@ -186,7 +186,7 @@ export default function DebugPage() {
         setResponse({
           ...newResponse,
           tokens: [...newSelectedTokens, ...newResponse.tokens],
-          generatedText: newSelectedTokens.join("") + newResponse.generatedText,
+          generatedText: newSelectedTokens.join('') + newResponse.generatedText,
           logprobsByPosition: [
             // Keep the logprobs we already had for selected positions
             ...response.logprobsByPosition.slice(0, newSelectedTokens.length),
@@ -199,8 +199,8 @@ export default function DebugPage() {
       }
     } catch (err) {
       setError({
-        error: "Network error during regeneration",
-        details: err instanceof Error ? err.message : "Unknown error",
+        error: 'Network error during regeneration',
+        details: err instanceof Error ? err.message : 'Unknown error',
       });
     } finally {
       setLoading(false);
@@ -216,7 +216,7 @@ export default function DebugPage() {
   }
 
   function formatToken(token: string): string {
-    return token.replace(/\n/g, "↵").replace(/\t/g, "→").replace(/ /g, "·");
+    return token.replace(/\n/g, '↵').replace(/\t/g, '→').replace(/ /g, '·');
   }
 
   function handleHistorySelect(item: HistoryItem) {

@@ -34,7 +34,7 @@ export default function SimulationPanel({
   onRestart,
   formatToken,
 }: SimulationPanelProps) {
-  const builtText = prompt + selectedTokens.join("");
+  const builtText = prompt + selectedTokens.join('');
 
   return (
     <div className="bg-purple-50 dark:bg-purple-950 rounded-lg p-4 border-2 border-purple-300 dark:border-purple-700">
@@ -54,7 +54,7 @@ export default function SimulationPanel({
       <div className="mb-4 p-3 bg-white dark:bg-zinc-900 rounded font-mono text-sm">
         <span className="text-zinc-500">{prompt}</span>
         <span className="text-purple-600 dark:text-purple-400 font-semibold">
-          {selectedTokens.join("")}
+          {selectedTokens.join('')}
         </span>
         {!simulationComplete && (
           <span className="animate-pulse text-purple-400">|</span>
@@ -64,7 +64,7 @@ export default function SimulationPanel({
       {/* Progress */}
       <div className="mb-4 text-sm text-purple-700 dark:text-purple-300">
         Position: {currentPosition + 1} / {totalTokens}
-        {simulationComplete && " (Complete!)"}
+        {simulationComplete && ' (Complete!)'}
       </div>
 
       {/* Simulation Complete State */}
@@ -87,7 +87,7 @@ export default function SimulationPanel({
         <>
           {/* Current Token Choice */}
           <div className="mb-2 text-sm text-purple-600 dark:text-purple-400">
-            Original token:{" "}
+            Original token:{' '}
             <span className="font-mono bg-green-100 dark:bg-green-900 px-1 rounded">
               {formatToken(currentToken)}
             </span>
@@ -108,17 +108,17 @@ export default function SimulationPanel({
                   disabled={loading}
                   className={`w-full flex items-center gap-2 p-2 rounded text-left transition-colors ${
                     isOriginal
-                      ? "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 border-2 border-green-400 dark:border-green-600"
-                      : "bg-white dark:bg-zinc-800 hover:bg-purple-100 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-700"
+                      ? 'bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 border-2 border-green-400 dark:border-green-600'
+                      : 'bg-white dark:bg-zinc-800 hover:bg-purple-100 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-700'
                   } ${
-                    loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                   }`}
                 >
                   <span
                     className={`font-mono text-sm ${
                       isOriginal
-                        ? "text-green-700 dark:text-green-300"
-                        : "text-zinc-700 dark:text-zinc-300"
+                        ? 'text-green-700 dark:text-green-300'
+                        : 'text-zinc-700 dark:text-zinc-300'
                     }`}
                   >
                     {formatToken(candidate.token)}
@@ -126,7 +126,7 @@ export default function SimulationPanel({
                   <div className="flex-1 h-3 bg-zinc-200 dark:bg-zinc-700 rounded overflow-hidden">
                     <div
                       className={`h-full ${
-                        isOriginal ? "bg-green-500" : "bg-purple-400"
+                        isOriginal ? 'bg-green-500' : 'bg-purple-400'
                       }`}
                       style={{
                         width: `${Math.max(candidate.probability * 100, 1)}%`,

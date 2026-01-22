@@ -22,10 +22,12 @@ This guide provides authoritative documentation for implementing the LLM Token W
 ### The Key Insight
 
 **Gemini completes the entire generation in ONE API call**, not token-by-token. It returns:
+
 - The complete generated text (e.g., " floor and started purring")
 - **Logprobs for EACH token position** in that generation
 
 This means:
+
 - ✅ You CAN step through tokens in the UI without making new API calls (Spin Mode)
 - ✅ You ONLY regenerate when the user manually selects a different token
 - ✅ Frontend handles token stepping with simple state management
@@ -33,6 +35,7 @@ This means:
 ### Token Selection Flow Architecture
 
 **Spin Mode (Follow Gemini's Path - No Re-generation):**
+
 ```
 1. User prompt: "The cat sat on the"
 2. Call Gemini API ONCE
@@ -54,6 +57,7 @@ This means:
 ```
 
 **Manual Selection Mode (Force Different Token - Requires Re-generation):**
+
 ```
 1. User prompt: "The cat sat on the"
 2. Call Gemini API ONCE
@@ -68,6 +72,7 @@ This means:
 ```
 
 **Why Ghost Mode?** When a user clicks a wheel wedge, don't immediately trigger an API call. Instead:
+
 1. Show the selected token appended to the context (visually)
 2. Display a "Continue Generating?" confirmation button
 3. Only call the API when they confirm
@@ -136,27 +141,27 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash-exp", // or "gemini-1.5-flash"
+  model: 'gemini-2.0-flash-exp', // or "gemini-1.5-flash"
 });
 
 const generationConfig = {
-  temperature: 0.9,           // Higher = more creative
-  topP: 0.95,                 // Nucleus sampling
-  topK: 40,                   // Top-k sampling
-  maxOutputTokens: 20,        // Limit generation length (5-20 recommended)
-  responseMimeType: "application/json", // Optional: JSON output
+  temperature: 0.9, // Higher = more creative
+  topP: 0.95, // Nucleus sampling
+  topK: 40, // Top-k sampling
+  maxOutputTokens: 20, // Limit generation length (5-20 recommended)
+  responseMimeType: 'application/json', // Optional: JSON output
 
   // CRITICAL: Enable logprobs
-  responseLogprobs: true,     // Must be true to get logprobs
-  logprobs: 5                 // Number of top candidates (1-20, recommend 5-10)
+  responseLogprobs: true, // Must be true to get logprobs
+  logprobs: 5, // Number of top candidates (1-20, recommend 5-10)
 };
 
 const systemInstruction = `You are a sentence completion assistant. Your job is to naturally continue the sentence provided by the user. Do not start a new sentence. Do not repeat the prompt. Simply continue where the user left off with natural, flowing text.`;
 
 const result = await model.generateContent({
-  contents: [{ role: "user", parts: [{ text: "The cat sat on the" }] }],
+  contents: [{ role: 'user', parts: [{ text: 'The cat sat on the' }] }],
   generationConfig: generationConfig,
-  systemInstruction: systemInstruction
+  systemInstruction: systemInstruction,
 });
 ```
 
@@ -226,17 +231,17 @@ function convertLogprobsToWheel(topCandidatesAtPosition) {
   const candidates = topCandidatesAtPosition.candidates;
 
   // Convert log probabilities to probabilities
-  const withProbs = candidates.map(c => ({
+  const withProbs = candidates.map((c) => ({
     token: c.token,
-    probability: Math.exp(c.logProbability) // e^(log_prob) = prob
+    probability: Math.exp(c.logProbability), // e^(log_prob) = prob
   }));
 
   // Normalize to ensure sum = 1.0
   const total = withProbs.reduce((sum, c) => sum + c.probability, 0);
-  const normalized = withProbs.map(c => ({
+  const normalized = withProbs.map((c) => ({
     token: c.token,
     probability: c.probability / total,
-    angle: (c.probability / total) * 360 // For wheel wedge sizing
+    angle: (c.probability / total) * 360, // For wheel wedge sizing
   }));
 
   return normalized;
@@ -246,6 +251,7 @@ function convertLogprobsToWheel(topCandidatesAtPosition) {
 ### 4. System Instructions for Sentence Continuation
 
 **Problem:** By default, Gemini may:
+
 - Echo/repeat the user's prompt in the response
 - Add markdown formatting (bold, italics)
 - Start a completely new sentence instead of continuing
@@ -259,11 +265,13 @@ const systemInstruction = `Continue the user's text naturally. Rules: 1) Do NOT 
 ```
 
 **Why these specific rules matter:**
+
 - Without rule 1: Gemini echoes "The cat sat on the" before adding "mat"
 - Without rule 2: Gemini adds `**mat**` with markdown bold formatting
 - Without rule 3: Gemini might add explanations or commentary
 
 **Verified output with this instruction:**
+
 ```
 Input:  "The cat sat on the"
 Output: "mat."
@@ -278,7 +286,7 @@ Clean, no echoing, no markdown - exactly what we need for the wheel.
 
 ```javascript
 // ❌ NEVER expose API key in frontend code
-const apiKey = "AIzaSy..."; // NO!
+const apiKey = 'AIzaSy...'; // NO!
 
 // ✅ Always use environment variables in backend
 const apiKey = process.env.GEMINI_API_KEY; // YES!
@@ -355,7 +363,7 @@ export async function POST(request) {
     const result = await generateWithLogprobs({
       prompt,
       systemInstruction: systemInstruction || undefined,
-      maxTokens: maxTokens || 20
+      maxTokens: maxTokens || 20,
     });
 
     // Return generation + logprobs
@@ -363,9 +371,8 @@ export async function POST(request) {
       success: true,
       generatedText: result.text,
       tokens: result.tokens,
-      logprobsByPosition: result.logprobsByPosition
+      logprobsByPosition: result.logprobsByPosition,
     });
-
   } catch (error) {
     console.error('Generation error:', error);
 
@@ -375,7 +382,8 @@ export async function POST(request) {
         {
           error: 'Content blocked by safety filter',
           reason: error.reason,
-          userMessage: 'Your prompt was flagged by the safety filter. Please try a different prompt.'
+          userMessage:
+            'Your prompt was flagged by the safety filter. Please try a different prompt.',
         },
         { status: 400 }
       );
@@ -385,7 +393,8 @@ export async function POST(request) {
     return NextResponse.json(
       {
         error: 'Failed to generate text',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details:
+          process.env.NODE_ENV === 'development' ? error.message : undefined,
       },
       { status: 500 }
     );
@@ -416,25 +425,25 @@ export async function generateWithLogprobs({
   temperature = 0.9,
   topP = 0.95,
   topK = 40,
-  numLogprobs = 8
+  numLogprobs = 8,
 }) {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-exp"
+    model: 'gemini-2.0-flash-exp',
   });
 
   const defaultSystemInstruction = `Continue the user's text naturally. Rules: 1) Do NOT repeat any part of the input. 2) Do NOT use markdown formatting. 3) Output only the continuation words.`;
 
   const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       temperature,
       topP,
       topK,
       maxOutputTokens: maxTokens,
       responseLogprobs: true,
-      logprobs: numLogprobs
+      logprobs: numLogprobs,
     },
-    systemInstruction: systemInstruction || defaultSystemInstruction
+    systemInstruction: systemInstruction || defaultSystemInstruction,
   });
 
   const response = result.response;
@@ -465,30 +474,35 @@ export async function generateWithLogprobs({
   }
 
   // Extract tokens
-  const tokens = logprobsResult.chosenCandidates.map(c => c.token);
+  const tokens = logprobsResult.chosenCandidates.map((c) => c.token);
 
   // Extract logprobs by position
-  const logprobsByPosition = logprobsResult.topCandidates.map(positionData => {
-    // Convert to object: { token: probability }
-    const probsAtPosition = {};
-    positionData.candidates.forEach(c => {
-      probsAtPosition[c.token] = Math.exp(c.logProbability);
-    });
+  const logprobsByPosition = logprobsResult.topCandidates.map(
+    (positionData) => {
+      // Convert to object: { token: probability }
+      const probsAtPosition = {};
+      positionData.candidates.forEach((c) => {
+        probsAtPosition[c.token] = Math.exp(c.logProbability);
+      });
 
-    // Normalize
-    const total = Object.values(probsAtPosition).reduce((sum, p) => sum + p, 0);
-    const normalized = {};
-    Object.entries(probsAtPosition).forEach(([token, prob]) => {
-      normalized[token] = prob / total;
-    });
+      // Normalize
+      const total = Object.values(probsAtPosition).reduce(
+        (sum, p) => sum + p,
+        0
+      );
+      const normalized = {};
+      Object.entries(probsAtPosition).forEach(([token, prob]) => {
+        normalized[token] = prob / total;
+      });
 
-    return normalized;
-  });
+      return normalized;
+    }
+  );
 
   return {
     text: response.text(),
     tokens,
-    logprobsByPosition
+    logprobsByPosition,
   };
 }
 ```
@@ -496,6 +510,7 @@ export async function generateWithLogprobs({
 **File: `lib/utils.js`** - Token Stitching Utilities
 
 Based on actual Gemini API testing, tokens behave as follows:
+
 - Tokens often include leading spaces (e.g., `" cat"`, `" sat"`)
 - First continuation token may or may NOT have a leading space
 - Subword tokens (e.g., `"ing"`) have no leading space
@@ -564,7 +579,10 @@ export function stitchToken(context, token) {
  * @returns {string} - The combined text
  */
 export function stitchTokens(tokens, initialContext = '') {
-  return tokens.reduce((text, token) => stitchToken(text, token), initialContext);
+  return tokens.reduce(
+    (text, token) => stitchToken(text, token),
+    initialContext
+  );
 }
 
 /**
@@ -635,7 +653,7 @@ export default function Home() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt }),
       });
       const data = await response.json();
 
@@ -654,8 +672,8 @@ export default function Home() {
 
     if (selectedToken === geminiToken) {
       // Spin mode - just advance
-      setCurrentPosition(prev => prev + 1);
-      setCurrentContext(prev => prev + selectedToken);
+      setCurrentPosition((prev) => prev + 1);
+      setCurrentContext((prev) => prev + selectedToken);
     } else {
       // Manual selection - regenerate
       const newPrompt = currentContext + selectedToken;
@@ -678,10 +696,7 @@ export default function Home() {
       </button>
 
       {currentLogprobs && (
-        <TokenWheel
-          logprobs={currentLogprobs}
-          onSelect={handleTokenSelect}
-        />
+        <TokenWheel logprobs={currentLogprobs} onSelect={handleTokenSelect} />
       )}
 
       <div>Current text: {currentContext}</div>
@@ -702,8 +717,8 @@ export default function Home() {
 2. Navigate to **Settings → Environment Variables**
 3. Add the following variables:
 
-| Key | Value | Target |
-|-----|-------|--------|
+| Key              | Value               | Target                           |
+| ---------------- | ------------------- | -------------------------------- |
 | `GEMINI_API_KEY` | Your Gemini API key | Production, Preview, Development |
 
 **Local Development:**
@@ -724,11 +739,13 @@ const apiKey = process.env.GEMINI_API_KEY;
 ### 2. Serverless Function Constraints
 
 **Default Limits (Hobby/Free Tier):**
+
 - Execution time: 10 seconds
 - Memory: 1024 MB
 - Payload size: 4.5 MB request, 4.5 MB response
 
 **Pro Tier:**
+
 - Execution time: 60 seconds (configurable up to 300s)
 - Memory: 3008 MB (configurable)
 
@@ -742,13 +759,13 @@ export const runtime = 'nodejs'; // or 'edge'
 
 **Edge Runtime vs. Node.js Runtime:**
 
-| Feature | Edge Runtime | Node.js Runtime |
-|---------|-------------|-----------------|
-| Cold start | ~0ms (instant) | ~100-500ms |
-| Execution time | 30s max | 60s max (Pro) |
-| Available libraries | Limited (Web APIs only) | Full Node.js |
-| Memory | 128 MB | 1024-3008 MB |
-| Recommended for | Simple, fast APIs | Complex operations, SDKs |
+| Feature             | Edge Runtime            | Node.js Runtime          |
+| ------------------- | ----------------------- | ------------------------ |
+| Cold start          | ~0ms (instant)          | ~100-500ms               |
+| Execution time      | 30s max                 | 60s max (Pro)            |
+| Available libraries | Limited (Web APIs only) | Full Node.js             |
+| Memory              | 128 MB                  | 1024-3008 MB             |
+| Recommended for     | Simple, fast APIs       | Complex operations, SDKs |
 
 **For Gemini API:** Use **Node.js runtime** (requires full SDK support).
 
@@ -761,13 +778,13 @@ export const runtime = 'nodejs'; // or 'edge'
 const nextConfig = {
   // Enable experimental features if needed
   experimental: {
-    serverActions: true
+    serverActions: true,
   },
 
   // Environment variables exposed to the browser (use sparingly)
   env: {
     // Only non-sensitive values here
-  }
+  },
 };
 
 module.exports = nextConfig;
@@ -807,6 +824,7 @@ vercel --prod
 **Strategies to reduce cold starts:**
 
 1. **Use Edge Runtime for simple routes:**
+
    ```javascript
    export const runtime = 'edge';
    ```
@@ -828,12 +846,14 @@ vercel --prod
 ### Phase 1: Basic Gemini API Integration (Week 1)
 
 **Goals:**
+
 - Set up Next.js project
 - Implement basic Gemini API call
 - Test logprobs response structure
 - Configure system instructions
 
 **Tasks:**
+
 1. Initialize Next.js project: `npx create-next-app@latest llm-token-wheel`
 2. Install dependencies: `npm install @google/generative-ai`
 3. Create `lib/gemini.js` with `generateWithLogprobs()` function
@@ -842,6 +862,7 @@ vercel --prod
 6. Experiment with different system instructions for continuation
 
 **Success Criteria:**
+
 - API returns complete generation + logprobs
 - Logprobs structure matches expected format
 - System instructions enforce sentence continuation
@@ -849,11 +870,13 @@ vercel --prod
 ### Phase 2: Next.js API Route & State Management (Week 2)
 
 **Goals:**
+
 - Implement complete API route with error handling
 - Build frontend state management for token stepping
 - Create basic UI (no wheel animation yet)
 
 **Tasks:**
+
 1. Complete `app/api/generate/route.js` with validation
 2. Create `app/page.js` with state management
 3. Implement token selection logic (spin vs. manual)
@@ -861,6 +884,7 @@ vercel --prod
 5. Test full flow: generate → step → regenerate
 
 **Success Criteria:**
+
 - Users can input prompt and generate
 - Users can step through tokens (Spin mode works)
 - Regeneration triggers when user selects different token
@@ -869,11 +893,13 @@ vercel --prod
 ### Phase 3: Vercel Deployment & Environment Setup (Week 3)
 
 **Goals:**
+
 - Deploy to Vercel
 - Configure environment variables
 - Test production behavior
 
 **Tasks:**
+
 1. Create Vercel account and connect GitHub
 2. Add `GEMINI_API_KEY` to Vercel environment variables
 3. Create `.env.example` template
@@ -882,6 +908,7 @@ vercel --prod
 6. Optimize cold start performance
 
 **Success Criteria:**
+
 - Application deployed and accessible
 - API key secure (not exposed to frontend)
 - Functions execute within time limits
@@ -890,11 +917,13 @@ vercel --prod
 ### Phase 4: Frontend Wheel Visualization (Week 4)
 
 **Goals:**
+
 - Build interactive probability wheel
 - Implement spinning animation
 - Add visual polish
 
 **Tasks:**
+
 1. Create `TokenWheel.jsx` component with SVG
 2. Calculate wedge angles from probabilities
 3. Implement spin animation (Framer Motion)
@@ -906,6 +935,7 @@ vercel --prod
 In **Spin Mode**, the wheel animation must be **deterministic**, not random. The wheel must always land on the `chosenCandidate` token that Gemini already generated.
 
 **Why this matters:**
+
 - If you use random physics (friction, momentum), the wheel might land on a different wedge
 - But Gemini already decided the next token - we're just revealing it dramatically
 - The animation is purely theatrical - the outcome is predetermined
@@ -922,7 +952,7 @@ In **Spin Mode**, the wheel animation must be **deterministic**, not random. The
  */
 function calculateRiggedRotation(wedges, chosenToken, currentRotation = 0) {
   // Find the wedge for the chosen token
-  const chosenWedge = wedges.find(w => w.token === chosenToken);
+  const chosenWedge = wedges.find((w) => w.token === chosenToken);
   if (!chosenWedge) {
     console.error('Chosen token not found in wedges!');
     return currentRotation;
@@ -935,7 +965,7 @@ function calculateRiggedRotation(wedges, chosenToken, currentRotation = 0) {
   // We need to rotate so the wedge center aligns with the pointer
   // Add multiple full rotations for dramatic spin effect
   const fullSpins = 3 + Math.floor(Math.random() * 3); // 3-5 full rotations
-  const targetRotation = (360 * fullSpins) + (360 - wedgeCenterAngle);
+  const targetRotation = 360 * fullSpins + (360 - wedgeCenterAngle);
 
   return currentRotation + targetRotation;
 }
@@ -951,6 +981,7 @@ function calculateRiggedRotation(wedges, chosenToken, currentRotation = 0) {
 ```
 
 **Key points:**
+
 - Calculate exact degrees to land pointer on chosen wedge center
 - Add 3-5 full rotations for dramatic effect
 - Use easing that decelerates naturally (like a real wheel slowing down)
@@ -979,72 +1010,89 @@ export async function POST(request) {
     const { prompt } = await request.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: 'No prompt provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No prompt provided' },
+        { status: 400 }
+      );
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-exp"
+      model: 'gemini-2.0-flash-exp',
     });
 
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.9,
         maxOutputTokens: 20,
         responseLogprobs: true,
-        logprobs: 8
+        logprobs: 8,
       },
-      systemInstruction: "Continue the user's text naturally. Do NOT repeat the input. Do NOT use markdown. Output only continuation words."
+      systemInstruction:
+        "Continue the user's text naturally. Do NOT repeat the input. Do NOT use markdown. Output only continuation words.",
     });
 
     const response = result.response;
 
     // CRITICAL: Check for safety blocks before accessing content
     if (response.promptFeedback?.blockReason) {
-      return NextResponse.json({
-        error: 'Safety block',
-        reason: response.promptFeedback.blockReason,
-        userMessage: 'Your prompt was flagged. Please try a different prompt.'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Safety block',
+          reason: response.promptFeedback.blockReason,
+          userMessage:
+            'Your prompt was flagged. Please try a different prompt.',
+        },
+        { status: 400 }
+      );
     }
 
     if (!response.candidates || response.candidates.length === 0) {
-      return NextResponse.json({ error: 'No content generated' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'No content generated' },
+        { status: 500 }
+      );
     }
 
     const candidate = response.candidates[0];
 
     // Check if generation was stopped by safety filter
     if (candidate.finishReason === 'SAFETY') {
-      return NextResponse.json({
-        error: 'Safety block',
-        userMessage: 'Generation stopped by safety filter. Please try a different prompt.'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Safety block',
+          userMessage:
+            'Generation stopped by safety filter. Please try a different prompt.',
+        },
+        { status: 400 }
+      );
     }
 
     const logprobs = candidate.logprobsResult;
 
     if (!logprobs || !logprobs.chosenCandidates) {
-      return NextResponse.json({ error: 'No logprobs returned' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'No logprobs returned' },
+        { status: 500 }
+      );
     }
 
-    const tokens = logprobs.chosenCandidates.map(c => c.token);
-    const probsByPosition = logprobs.topCandidates.map(pos => {
+    const tokens = logprobs.chosenCandidates.map((c) => c.token);
+    const probsByPosition = logprobs.topCandidates.map((pos) => {
       const probs = {};
-      pos.candidates.forEach(c => {
+      pos.candidates.forEach((c) => {
         probs[c.token] = Math.exp(c.logProbability);
       });
       const total = Object.values(probs).reduce((a, b) => a + b, 0);
-      Object.keys(probs).forEach(k => probs[k] /= total);
+      Object.keys(probs).forEach((k) => (probs[k] /= total));
       return probs;
     });
 
     return NextResponse.json({
       text: response.text(),
       tokens,
-      logprobsByPosition: probsByPosition
+      logprobsByPosition: probsByPosition,
     });
-
   } catch (error) {
     console.error('Gemini API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -1101,6 +1149,7 @@ curl -X POST http://localhost:3000/api/generate \
 **Answer: YES ✅**
 
 Gemini returns `topCandidates` as an array where:
+
 - Index 0 = token position 0 (first generated token)
 - Index 1 = token position 1 (second generated token)
 - Index N = token position N
@@ -1112,11 +1161,13 @@ Each position contains the top K candidates at that position.
 **Recommendation: 10-20 tokens**
 
 Rationale:
+
 - **Too few (< 5):** Not enough exploration, users finish too quickly
 - **Just right (10-20):** Enough for interesting patterns, not overwhelming
 - **Too many (> 30):** Slow API response, user fatigue
 
 Adjust `maxOutputTokens` based on use case:
+
 - Short phrases: 5-10 tokens
 - Full sentences: 15-20 tokens
 - Longer exploration: 20-30 tokens
@@ -1126,6 +1177,7 @@ Adjust `maxOutputTokens` based on use case:
 **Answer: See structure above**
 
 Key points:
+
 - `chosenCandidates`: Array of actually generated tokens
 - `topCandidates`: Array of arrays (one per position)
 - Each position has `candidates` array with `{token, logProbability}`
@@ -1141,6 +1193,7 @@ The `@google/generative-ai` package is officially supported and works perfectly 
 ### 5. What about rate limits?
 
 **Gemini API Rate Limits (Free Tier):**
+
 - 15 requests per minute
 - 1 million tokens per minute
 - 1,500 requests per day
@@ -1154,9 +1207,10 @@ The `@google/generative-ai` package is officially supported and works perfectly 
 ### Security
 
 1. **Never expose API keys in frontend:**
+
    ```javascript
    // ❌ BAD
-   const apiKey = "AIzaSy...";
+   const apiKey = 'AIzaSy...';
 
    // ✅ GOOD
    const apiKey = process.env.GEMINI_API_KEY;
@@ -1181,6 +1235,7 @@ The `@google/generative-ai` package is officially supported and works perfectly 
    - Cache responses if possible (future enhancement)
 
 2. **Set appropriate timeouts:**
+
    ```javascript
    export const maxDuration = 30; // 30 seconds
    ```
@@ -1203,7 +1258,8 @@ export async function POST(request) {
     return NextResponse.json(
       {
         error: 'Failed to generate text. Please try again.',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details:
+          process.env.NODE_ENV === 'development' ? error.message : undefined,
       },
       { status: 500 }
     );
@@ -1216,6 +1272,7 @@ export async function POST(request) {
 ## Next Steps
 
 1. **Set up Next.js project:**
+
    ```bash
    npx create-next-app@latest llm-token-wheel
    cd llm-token-wheel
@@ -1255,6 +1312,7 @@ export async function POST(request) {
 ## Support
 
 For issues or questions:
+
 1. Check this guide first
 2. Review official documentation links above
 3. Test with minimal example code
@@ -1263,6 +1321,7 @@ For issues or questions:
 ---
 
 **Last Updated:** Based on research conducted 2026-01-13 using official documentation from:
+
 - Google Cloud Platform Generative AI repository
 - Next.js v15 documentation
 - Vercel platform documentation

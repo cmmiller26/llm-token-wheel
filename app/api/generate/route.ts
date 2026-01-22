@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { generateWithLogprobs, SafetyBlockError } from "@/lib/gemini";
+import { NextResponse } from 'next/server';
+import { generateWithLogprobs, SafetyBlockError } from '@/lib/gemini';
 
 // Set maximum execution time (seconds)
 export const maxDuration = 30;
@@ -18,9 +18,9 @@ export async function POST(request: Request) {
     } = await request.json();
 
     // Validate input
-    if (!prompt || typeof prompt !== "string") {
+    if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json(
-        { error: "Prompt is required and must be a string" },
+        { error: 'Prompt is required and must be a string' },
         { status: 400 }
       );
     }
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     // Basic prompt length validation
     if (prompt.length > 1000) {
       return NextResponse.json(
-        { error: "Prompt too long (max 1000 characters)" },
+        { error: 'Prompt too long (max 1000 characters)' },
         { status: 400 }
       );
     }
@@ -52,16 +52,16 @@ export async function POST(request: Request) {
       logprobsByPosition: result.logprobsByPosition,
     });
   } catch (error) {
-    console.error("Generation error:", error);
+    console.error('Generation error:', error);
 
     // Handle safety blocks with user-friendly message
     if (error instanceof SafetyBlockError) {
       return NextResponse.json(
         {
-          error: "Content blocked by safety filter",
+          error: 'Content blocked by safety filter',
           reason: error.reason,
           userMessage:
-            "Your prompt was flagged by the safety filter. Please try a different prompt.",
+            'Your prompt was flagged by the safety filter. Please try a different prompt.',
         },
         { status: 400 }
       );
@@ -69,12 +69,12 @@ export async function POST(request: Request) {
 
     // Generic error handling
     const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+      error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       {
-        error: "Failed to generate text",
+        error: 'Failed to generate text',
         details:
-          process.env.NODE_ENV === "development" ? errorMessage : undefined,
+          process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     );

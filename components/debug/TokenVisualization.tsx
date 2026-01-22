@@ -101,14 +101,14 @@ export default function TokenVisualization({
                     return (
                       <div key={i} className="flex items-center gap-2 text-xs">
                         <span
-                          className={`font-mono w-24 truncate ${isChosen ? "text-green-600 dark:text-green-400 font-semibold" : "text-zinc-600 dark:text-zinc-400"}`}
+                          className={`font-mono w-24 truncate ${isChosen ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-zinc-600 dark:text-zinc-400'}`}
                           title={`Raw: "${candidate.token}"`}
                         >
                           {formatToken(candidate.token)}
                         </span>
                         <div className="flex-1 h-4 bg-zinc-100 dark:bg-zinc-800 rounded overflow-hidden">
                           <div
-                            className={`h-full ${isChosen ? "bg-green-500" : "bg-blue-400"}`}
+                            className={`h-full ${isChosen ? 'bg-green-500' : 'bg-blue-400'}`}
                             style={{ width: `${barWidth}%` }}
                           />
                         </div>

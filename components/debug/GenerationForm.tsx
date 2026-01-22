@@ -21,11 +21,11 @@ interface GenerationFormProps {
 }
 
 const TEST_PROMPTS = [
-  "The cat sat on the",
-  "Once upon a time, there was a",
-  "The quick brown fox",
-  "In a galaxy far, far",
-  "She opened the door and saw",
+  'The cat sat on the',
+  'Once upon a time, there was a',
+  'The quick brown fox',
+  'In a galaxy far, far',
+  'She opened the door and saw',
 ];
 
 const DEFAULT_SYSTEM_INSTRUCTION = `You are a text continuation assistant. The user will provide incomplete text, and you must continue it naturally.
@@ -127,7 +127,7 @@ export default function GenerationForm({
           onClick={() => onShowAdvancedChange(!showAdvanced)}
           className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
-          {showAdvanced ? "▼ Hide" : "▶ Show"} Advanced Settings
+          {showAdvanced ? '▼ Hide' : '▶ Show'} Advanced Settings
         </button>
 
         {showAdvanced && (
@@ -202,7 +202,7 @@ export default function GenerationForm({
             Generating...
           </>
         ) : (
-          "Generate"
+          'Generate'
         )}
       </button>
 

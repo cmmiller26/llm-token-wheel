@@ -15,8 +15,8 @@ export default function GhostConfirmation({
         Different Path Selected
       </h3>
       <p className="text-amber-700 dark:text-amber-300 text-sm mb-4">
-        You selected{" "}
-        <span className="font-mono font-bold">&quot;{ghostToken}&quot;</span>{" "}
+        You selected{' '}
+        <span className="font-mono font-bold">&quot;{ghostToken}&quot;</span>{' '}
         instead of the AI&apos;s choice. This will regenerate the continuation
         from this point.
       </p>
