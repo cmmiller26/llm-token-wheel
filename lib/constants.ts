@@ -1,5 +1,11 @@
 export const DEFAULT_TEMPERATURE = 0.9;
 
+export const STORAGE_KEYS = {
+  PROMPT: 'tokenwheel-prompt',
+  TEMPERATURE: 'tokenwheel-temperature',
+  SYSTEM_INSTRUCTION: 'tokenwheel-system-instruction',
+} as const;
+
 export const TEMPERATURE_CONFIG = {
   min: 0,
   max: 2,
