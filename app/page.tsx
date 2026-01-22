@@ -6,7 +6,7 @@ import PromptInput from "@/components/PromptInput";
 import BuiltTextDisplay from "@/components/BuiltTextDisplay";
 import GhostConfirmation from "@/components/GhostConfirmation";
 import CompletionBanner from "@/components/CompletionBanner";
-import { stitchToken } from "@/lib/utils";
+import { stitchToken, stitchTokens } from "@/lib/utils";
 
 interface GenerationData {
   id: number; // Unique ID for each generation to ensure wheel remounts
@@ -29,6 +29,12 @@ type AppState =
     }
   | { type: "complete" };
 
+type UndoEntry = {
+  type: "normal" | "ghost";
+  previousGeneration: GenerationData;
+  previousPosition: number;
+};
+
 export default function Home() {
   // Core state
   const [prompt, setPrompt] = useState("The cat sat on the");
@@ -36,14 +42,17 @@ export default function Home() {
   const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
   const [appState, setAppState] = useState<AppState>({ type: "idle" });
   const [error, setError] = useState<string | null>(null);
+  const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
 
   // Refs to access latest state in callbacks (avoids stale closures)
   const appStateRef = useRef(appState);
   const selectedTokensRef = useRef(selectedTokens);
   const builtTextRef = useRef(builtText);
+  const undoStackRef = useRef(undoStack);
   appStateRef.current = appState;
   selectedTokensRef.current = selectedTokens;
   builtTextRef.current = builtText;
+  undoStackRef.current = undoStack;
 
   // Extract generation data and position from state
   const generation =
@@ -105,6 +114,7 @@ export default function Home() {
     if (gen) {
       setBuiltText(prompt);
       setSelectedTokens([]);
+      setUndoStack([]);
       setAppState({ type: "spinning", generation: gen, position: 0 });
     }
   }, [prompt, generate]);
@@ -124,6 +134,11 @@ export default function Home() {
       const newSelectedTokens = [...currentSelectedTokens, token];
       const newBuiltText = stitchToken(currentBuiltText, token);
 
+      // Push normal entry to undo stack (save current state for instant restore)
+      setUndoStack((prev) => [
+        ...prev,
+        { type: "normal", previousGeneration: gen, previousPosition: position },
+      ]);
       setSelectedTokens(newSelectedTokens);
       setBuiltText(newBuiltText);
 
@@ -153,12 +168,18 @@ export default function Home() {
     const currentAppState = appStateRef.current;
     if (currentAppState.type !== "ghost") return;
 
-    const { ghostToken } = currentAppState;
+    const { generation: prevGen, position: prevPos, ghostToken } = currentAppState;
     const currentSelectedTokens = selectedTokensRef.current;
     const currentBuiltText = builtTextRef.current;
     const newSelectedTokens = [...currentSelectedTokens, ghostToken];
     const newBuiltText = stitchToken(currentBuiltText, ghostToken);
     const newPrompt = newBuiltText;
+
+    // Save current generation state before overriding (for instant undo)
+    setUndoStack((prev) => [
+      ...prev,
+      { type: "ghost", previousGeneration: prevGen, previousPosition: prevPos },
+    ]);
 
     // Generate from the new context
     const gen = await generate(newPrompt);
@@ -177,12 +198,50 @@ export default function Home() {
     setAppState({ type: "spinning", generation: gen, position });
   }, []);
 
+  // Undo last token selection
+  const handleUndo = useCallback(() => {
+    const currentAppState = appStateRef.current;
+
+    // If in ghost mode, just cancel it (don't undo a token)
+    if (currentAppState.type === "ghost") {
+      const { generation: gen, position } = currentAppState;
+      setAppState({ type: "spinning", generation: gen, position });
+      return;
+    }
+
+    const currentUndoStack = undoStackRef.current;
+    const currentSelectedTokens = selectedTokensRef.current;
+
+    if (currentUndoStack.length === 0 || currentSelectedTokens.length === 0)
+      return;
+
+    const entry = currentUndoStack[currentUndoStack.length - 1];
+    const newUndoStack = currentUndoStack.slice(0, -1);
+    const newSelectedTokens = currentSelectedTokens.slice(0, -1);
+    const newBuiltText =
+      newSelectedTokens.length > 0
+        ? stitchTokens(newSelectedTokens, prompt)
+        : prompt;
+
+    setUndoStack(newUndoStack);
+    setSelectedTokens(newSelectedTokens);
+    setBuiltText(newBuiltText);
+
+    // Instant restore - no API call needed for either type
+    setAppState({
+      type: "spinning",
+      generation: entry.previousGeneration,
+      position: entry.previousPosition,
+    });
+  }, [prompt]);
+
   // Reset to start over
   const handleReset = useCallback(() => {
     setBuiltText("");
     setSelectedTokens([]);
     setAppState({ type: "idle" });
     setError(null);
+    setUndoStack([]);
   }, []);
 
   // Get the text to display (including ghost token if in ghost mode)
@@ -283,8 +342,18 @@ export default function Home() {
         )}
 
         {/* Controls */}
-        {(appState.type === "spinning" || appState.type === "ghost") && (
-          <div className="text-center">
+        {(appState.type === "spinning" ||
+          appState.type === "ghost" ||
+          appState.type === "complete") && (
+          <div className="text-center space-x-4">
+            {undoStack.length > 0 && (
+              <button
+                onClick={handleUndo}
+                className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 underline"
+              >
+                Undo
+              </button>
+            )}
             <button
               onClick={handleReset}
               className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 underline"
