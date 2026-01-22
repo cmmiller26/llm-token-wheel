@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   DEFAULT_TEMPERATURE,
   DEFAULT_SYSTEM_INSTRUCTION,
@@ -24,10 +23,13 @@ export default function SettingsPanel({
   onToggle,
   disabled,
 }: SettingsPanelProps) {
-  const [showSystemInstruction, setShowSystemInstruction] = useState(false);
   const isTemperatureDefault = temperature === DEFAULT_TEMPERATURE;
   const isSystemInstructionDefault =
     systemInstruction === DEFAULT_SYSTEM_INSTRUCTION;
+  const temperaturePercent =
+    ((temperature - TEMPERATURE_CONFIG.min) /
+      (TEMPERATURE_CONFIG.max - TEMPERATURE_CONFIG.min)) *
+    100;
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg mb-6 overflow-hidden">
@@ -84,20 +86,20 @@ export default function SettingsPanel({
               value={temperature}
               onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
               disabled={disabled}
-              className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed accent-blue-600"
+              style={{
+                background: `linear-gradient(to right, var(--range-fill) 0%, var(--range-fill) ${temperaturePercent}%, var(--range-track) ${temperaturePercent}%, var(--range-track) 100%)`,
+              }}
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed accent-blue-600 [--range-fill:#2563eb] [--range-track:#e5e7eb] dark:[--range-fill:#60a5fa] dark:[--range-track:#3f3f46]"
             />
-            <div className="flex justify-between text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+            <div className="flex justify-between text-xs text-zinc-400 dark:text-zinc-500 mt-2">
               <span>Precise</span>
               <span>Creative</span>
             </div>
           </div>
 
           {/* System Instruction */}
-          <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <button
-              onClick={() => setShowSystemInstruction(!showSystemInstruction)}
-              className="w-full flex items-center justify-between text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
+          <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center justify-between text-sm font-medium text-zinc-700 dark:text-zinc-300">
               <span>
                 System Instruction
                 {!isSystemInstructionDefault && (
@@ -106,48 +108,28 @@ export default function SettingsPanel({
                   </span>
                 )}
               </span>
-              <svg
-                className={`w-4 h-4 text-zinc-400 transition-transform ${
-                  showSystemInstruction ? 'rotate-180' : ''
-                }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {showSystemInstruction && (
-              <div className="mt-3">
-                <div className="flex justify-end mb-2">
-                  {!isSystemInstructionDefault && (
-                    <button
-                      onClick={() =>
-                        onSystemInstructionChange(DEFAULT_SYSTEM_INSTRUCTION)
-                      }
-                      disabled={disabled}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  value={systemInstruction}
-                  onChange={(e) => onSystemInstructionChange(e.target.value)}
+              {!isSystemInstructionDefault && (
+                <button
+                  onClick={() =>
+                    onSystemInstructionChange(DEFAULT_SYSTEM_INSTRUCTION)
+                  }
                   disabled={disabled}
-                  rows={8}
-                  className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-y"
-                  placeholder="Enter system instruction..."
-                />
-              </div>
-            )}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+            <div className="mt-3">
+              <textarea
+                value={systemInstruction}
+                onChange={(e) => onSystemInstructionChange(e.target.value)}
+                disabled={disabled}
+                rows={8}
+                className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-y"
+                placeholder="Enter system instruction..."
+              />
+            </div>
           </div>
         </div>
       )}
