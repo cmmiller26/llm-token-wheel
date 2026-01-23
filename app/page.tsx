@@ -10,6 +10,7 @@ import {
   DEFAULT_SYSTEM_INSTRUCTION,
   STORAGE_KEYS,
 } from '@/lib/constants';
+import Footer from '@/components/Footer';
 
 // Helper to get initial temperature from localStorage
 function getInitialTemperature(): number {
@@ -78,11 +79,11 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <Header />
+    <div className="mx-auto min-h-screen max-w-3xl bg-zinc-50 dark:bg-zinc-950">
+      <Header />
 
-        {/* Input Section */}
+      {/* Input Section */}
+      <div className="flex flex-col gap-4">
         <PromptInput
           prompt={prompt}
           onPromptChange={setPrompt}
@@ -96,12 +97,9 @@ export default function Home() {
           isOpen={showSettings}
           onToggle={() => setShowSettings(!showSettings)}
         />
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
-          Powered by Gemini 2.0 Flash
-        </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

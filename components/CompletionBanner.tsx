@@ -10,24 +10,24 @@ export default function CompletionBanner({
   onContinue,
 }: CompletionBannerProps) {
   return (
-    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
-      <div className="text-4xl mb-3">✓</div>
-      <h3 className="font-medium text-green-800 dark:text-green-200 mb-2">
+    <div className="rounded-xl border border-green-200 bg-green-50 p-6 text-center dark:border-green-800 dark:bg-green-950">
+      <div className="mb-3 text-4xl">✓</div>
+      <h3 className="mb-2 font-medium text-green-800 dark:text-green-200">
         Generation Complete!
       </h3>
-      <p className="text-green-700 dark:text-green-300 text-sm mb-4">
+      <p className="mb-4 text-sm text-green-700 dark:text-green-300">
         You&apos;ve stepped through all {tokenCount} tokens.
       </p>
-      <div className="flex gap-3 justify-center">
+      <div className="flex justify-center gap-3">
         <button
           onClick={onReset}
-          className="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+          className="rounded-lg bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700"
         >
           Start Over
         </button>
         <button
           onClick={onContinue}
-          className="py-2 px-4 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-300 font-medium rounded-lg transition-colors"
+          className="rounded-lg bg-zinc-200 px-4 py-2 font-medium text-zinc-700 transition-colors hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
         >
           Continue from here
         </button>

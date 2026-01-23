@@ -2,16 +2,20 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import TokenWheel from '@/components/TokenWheel';
+import TokenWheel, { TokenWheelHandle } from '@/components/TokenWheel';
+import TokenLegend from '@/components/TokenLegend';
 import BuiltTextDisplay from '@/components/BuiltTextDisplay';
 import CompletionBanner from '@/components/CompletionBanner';
 import Header from '@/components/Header';
-import { stitchToken, stitchTokens } from '@/lib/utils';
+import { stitchToken, stitchTokens, WedgeData } from '@/lib/utils';
 import {
   DEFAULT_TEMPERATURE,
   DEFAULT_SYSTEM_INSTRUCTION,
   STORAGE_KEYS,
 } from '@/lib/constants';
+import Footer from '@/components/Footer';
+import ErrorDisplay from '@/components/ErrorDisplay';
+import { LoadingState } from '@/components/LoadingState';
 
 interface GenerationData {
   id: number;
@@ -53,6 +57,15 @@ export default function WheelPage() {
 
   // Prevent double-initialization in React strict mode
   const hasInitialized = useRef(false);
+
+  // TokenWheel ref for imperative control
+  const wheelRef = useRef<TokenWheelHandle>(null);
+
+  // State for coordinating with TokenLegend
+  const [legendWedges, setLegendWedges] = useState<WedgeData[]>([]);
+  const [legendSelectedToken, setLegendSelectedToken] = useState<string | null>(
+    null
+  );
 
   // Refs to access latest state in callbacks
   const appStateRef = useRef(appState);
@@ -260,13 +273,18 @@ export default function WheelPage() {
     router.push('/');
   }, [router]);
 
+  // Handle legend token click - trigger wheel's wedge click
+  const handleLegendClick = useCallback((token: string) => {
+    wheelRef.current?.triggerWedgeClick(token);
+  }, []);
+
   // Show loading while checking for prompt
   if (prompt === null) {
     return (
       <div className="min-h-screen bg-linear-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-8 text-center">
-            <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+        <div className="mx-auto max-w-2xl px-4 py-8">
+          <div className="rounded-xl bg-white p-8 text-center shadow-lg dark:bg-zinc-900">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
             <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
           </div>
         </div>
@@ -275,67 +293,60 @@ export default function WheelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <Header />
+    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 bg-zinc-50 dark:bg-zinc-950">
+      <Header />
 
-        {/* Error Display */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
-          </div>
-        )}
+      {/* Error Display */}
+      {error && <ErrorDisplay message={error} />}
 
-        {/* Loading State */}
-        {appState.type === 'loading' && (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-8 text-center">
-            <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Generating tokens...
-            </p>
-          </div>
-        )}
+      {/* Loading State */}
+      {appState.type === 'loading' && <LoadingState />}
 
-        {/* Built Text Display */}
-        {(appState.type === 'spinning' || appState.type === 'complete') && (
-          <BuiltTextDisplay
-            prompt={prompt}
-            selectedTokens={selectedTokens}
-            showCursor={appState.type !== 'complete'}
-            showUndo={undoStack.length > 0}
-            onUndo={handleUndo}
-            onReset={handleReset}
+      {/* Built Text Display - spans full width */}
+      {(appState.type === 'spinning' || appState.type === 'complete') && (
+        <BuiltTextDisplay
+          prompt={prompt}
+          selectedTokens={selectedTokens}
+          showCursor={appState.type !== 'complete'}
+          showUndo={undoStack.length > 0}
+          onUndo={handleUndo}
+          onReset={handleReset}
+        />
+      )}
+
+      {/* Token Wheel and Legend - side by side on large screens */}
+      {appState.type === 'spinning' && currentLogprobs && (
+        <div className="flex flex-col gap-4 lg:flex-row">
+          <TokenWheel
+            ref={wheelRef}
+            key={`${generation?.id}-${currentPosition}`}
+            logprobs={currentLogprobs}
+            chosenToken={currentChosenToken}
+            onTokenSelect={handleTokenSelect}
+            onSelectedTokenChange={setLegendSelectedToken}
+            onWedgesChange={setLegendWedges}
+            currentPosition={currentPosition + 1}
+            totalPositions={generation?.tokens.length}
           />
-        )}
-
-        {/* Token Wheel */}
-        {appState.type === 'spinning' && currentLogprobs && (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 mb-6">
-            <TokenWheel
-              key={`${generation?.id}-${currentPosition}`}
-              logprobs={currentLogprobs}
-              chosenToken={currentChosenToken}
-              onTokenSelect={handleTokenSelect}
-              currentPosition={currentPosition + 1}
-              totalPositions={generation?.tokens.length}
-            />
-          </div>
-        )}
-
-        {/* Complete State */}
-        {appState.type === 'complete' && (
-          <CompletionBanner
-            tokenCount={selectedTokens.length}
-            onReset={handleReset}
-            onContinue={handleContinue}
+          <TokenLegend
+            wedges={legendWedges}
+            selectedToken={legendSelectedToken}
+            onTokenClick={handleLegendClick}
+            disabled={appState.type !== 'spinning'}
           />
-        )}
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
-          Powered by Gemini 2.0 Flash
         </div>
-      </div>
+      )}
+
+      {/* Complete State */}
+      {appState.type === 'complete' && (
+        <CompletionBanner
+          tokenCount={selectedTokens.length}
+          onReset={handleReset}
+          onContinue={handleContinue}
+        />
+      )}
+
+      <Footer />
     </div>
   );
 }

@@ -16,8 +16,8 @@ export default function BuiltTextDisplay({
   onReset,
 }: BuiltTextDisplayProps) {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 mb-6">
-      <div className="flex items-center justify-between mb-3">
+    <div className="rounded-xl border border-zinc-100 bg-white p-6 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="mb-3 flex items-center justify-between">
         <h2 className="text-lg font-medium text-zinc-700 dark:text-zinc-300">
           Generated Text
         </h2>
@@ -26,7 +26,7 @@ export default function BuiltTextDisplay({
             {showUndo && onUndo && (
               <button
                 onClick={onUndo}
-                className="py-1.5 px-3 text-sm bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-200 font-medium rounded-lg transition-colors"
+                className="rounded-lg bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600"
               >
                 Undo
               </button>
@@ -34,7 +34,7 @@ export default function BuiltTextDisplay({
             {onReset && (
               <button
                 onClick={onReset}
-                className="py-1.5 px-3 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
               >
                 Start over
               </button>
@@ -42,13 +42,13 @@ export default function BuiltTextDisplay({
           </div>
         )}
       </div>
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg min-h-15">
+      <div className="min-h-15 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800">
         <span className="text-zinc-500 dark:text-zinc-400">{prompt}</span>
-        <span className="text-zinc-900 dark:text-zinc-100 font-medium">
+        <span className="font-medium text-zinc-900 dark:text-zinc-100">
           {selectedTokens.join('')}
         </span>
         {showCursor && (
-          <span className="inline-block w-0.5 h-5 bg-blue-500 ml-0.5 animate-pulse align-middle" />
+          <span className="ml-0.5 inline-block h-5 w-0.5 animate-pulse bg-blue-500 align-middle" />
         )}
       </div>
       <div className="text-right">

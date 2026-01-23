@@ -17,40 +17,38 @@ export default function TokenLegend({
   disabled,
 }: TokenLegendProps) {
   return (
-    <div className="w-full max-w-md lg:max-w-none lg:w-auto">
+    <div className="w-full rounded-xl border border-zinc-100 bg-white p-6 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
+      <h3 className="mb-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+        Token Probabilities
+      </h3>
       {/* Token buttons */}
-      <div className="flex flex-wrap gap-1 justify-center lg:flex-col lg:gap-1.5">
+      <div className="flex flex-col gap-2">
         {wedges.slice(0, 8).map((wedge, index) => (
           <button
             key={wedge.token}
             onClick={() => onTokenClick(wedge.token)}
             disabled={disabled}
-            className={`
-              flex items-center gap-1 px-2 py-1 rounded text-xs
-              transition-all duration-200
-              ${
-                selectedToken === wedge.token
-                  ? 'ring-2 ring-blue-500 ring-offset-1'
-                  : ''
-              }
-              ${
-                disabled
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer'
-              }
-            `}
+            className={`flex items-center gap-2 rounded-lg bg-zinc-50 px-3 py-1.5 text-sm transition-all duration-200 dark:bg-zinc-800 ${
+              selectedToken === wedge.token
+                ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-white dark:ring-offset-zinc-900'
+                : ''
+            } ${
+              disabled
+                ? 'cursor-not-allowed opacity-50'
+                : 'cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700'
+            } `}
           >
             <span
-              className="w-3 h-3 rounded-sm shrink-0"
+              className="h-4 w-4 shrink-0 rounded"
               style={{
                 backgroundColor: WEDGE_COLORS[index % WEDGE_COLORS.length],
               }}
             />
-            <span className="font-mono text-zinc-700 dark:text-zinc-300 truncate max-w-20">
+            <span className="max-w-24 truncate font-mono text-zinc-700 dark:text-zinc-300">
               {formatTokenForDisplay(wedge.token)}
             </span>
-            <span className="text-zinc-400 dark:text-zinc-500">
-              {(wedge.probability * 100).toFixed(0)}%
+            <span className="ml-auto text-zinc-400 dark:text-zinc-500">
+              {(wedge.probability * 100).toFixed(1)}%
             </span>
           </button>
         ))}
