@@ -2,26 +2,16 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { convertLogprobsToWedges, formatTokenForDisplay } from '@/lib/utils';
-
-// Color palette for wheel wedges (high contrast, accessible)
-const WEDGE_COLORS = [
-  '#3B82F6', // blue-500
-  '#10B981', // emerald-500
-  '#F59E0B', // amber-500
-  '#EF4444', // red-500
-  '#8B5CF6', // violet-500
-  '#EC4899', // pink-500
-  '#06B6D4', // cyan-500
-  '#84CC16', // lime-500
-  '#F97316', // orange-500
-  '#6366F1', // indigo-500
-];
+import { WEDGE_COLORS } from '@/lib/constants';
+import TokenLegend from '@/components/TokenLegend';
 
 interface TokenWheelProps {
   logprobs: Record<string, number>;
   chosenToken: string;
   onTokenSelect: (token: string) => void;
   disabled?: boolean;
+  currentPosition?: number;
+  totalPositions?: number;
 }
 
 interface WedgeData {
@@ -112,6 +102,8 @@ export default function TokenWheel({
   chosenToken,
   onTokenSelect,
   disabled = false,
+  currentPosition,
+  totalPositions,
 }: TokenWheelProps) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -196,296 +188,267 @@ export default function TokenWheel({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* CSS for animations */}
-      <style jsx>{`
-        @keyframes pulse-glow {
-          0%,
-          100% {
-            opacity: 0.6;
-          }
-          50% {
-            opacity: 1;
-          }
-        }
-        @keyframes bounce {
-          0%,
-          100% {
-            transform: translateX(-50%) translateY(0);
-          }
-          50% {
-            transform: translateX(-50%) translateY(8px);
-          }
-        }
-        .pulse-glow {
-          animation: pulse-glow 1.5s ease-in-out infinite;
-        }
-        .pointer-bounce {
-          animation: bounce 0.5s ease-out;
-        }
-      `}</style>
-
-      {/* Wheel Container */}
-      <div className="relative" style={{ width: size, height: size }}>
-        {/* Pointer */}
-        <div
-          className={`absolute z-10 left-1/2 -translate-x-1/2 -top-1 ${
-            pointerBounce ? 'pointer-bounce' : ''
-          }`}
-          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
-        >
-          <div
-            style={{
-              width: 0,
-              height: 0,
-              borderLeft: '15px solid transparent',
-              borderRight: '15px solid transparent',
-              borderTop: '25px solid #e74c3c',
-            }}
-          />
+      {/* Position indicator */}
+      {currentPosition !== undefined && totalPositions !== undefined && (
+        <div className="text-xs text-zinc-500 dark:text-zinc-400">
+          Position {currentPosition} of {totalPositions}
         </div>
+      )}
 
-        {/* Wheel SVG */}
-        <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          className="drop-shadow-xl"
-        >
-          {/* Outer ring */}
-          <circle
-            cx={center}
-            cy={center}
-            r={radius + 6}
-            fill="none"
-            stroke="#374151"
-            strokeWidth="10"
-            className="dark:stroke-zinc-600"
-          />
+      {/* Wheel + Legend row */}
+      <div className="flex flex-col lg:flex-row items-center gap-4">
+        {/* CSS for animations */}
+        <style jsx>{`
+          @keyframes pulse-glow {
+            0%,
+            100% {
+              opacity: 0.6;
+            }
+            50% {
+              opacity: 1;
+            }
+          }
+          @keyframes bounce {
+            0%,
+            100% {
+              transform: translateX(-50%) translateY(0);
+            }
+            50% {
+              transform: translateX(-50%) translateY(8px);
+            }
+          }
+          .pulse-glow {
+            animation: pulse-glow 1.5s ease-in-out infinite;
+          }
+          .pointer-bounce {
+            animation: bounce 0.5s ease-out;
+          }
+        `}</style>
 
-          {/* Spinning wheel group - using CSS transform */}
-          <g
-            style={{
-              transform: `rotate(${rotation}deg)`,
-              transformOrigin: `${center}px ${center}px`,
-              transition: isSpinning
-                ? 'transform 4s cubic-bezier(0.15, 0.5, 0.2, 1)'
-                : 'none',
-            }}
+        {/* Wheel Container */}
+        <div className="relative" style={{ width: size, height: size }}>
+          {/* Pointer */}
+          <div
+            className={`absolute z-10 left-1/2 -translate-x-1/2 -top-1 ${
+              pointerBounce ? 'pointer-bounce' : ''
+            }`}
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
           >
-            {/* Wedges */}
-            {wedges.map((wedge, index) => {
-              const isSelected = selectedToken === wedge.token;
-              const isChosen = wedge.token === chosenToken;
-              const color = WEDGE_COLORS[index % WEDGE_COLORS.length];
+            <div
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '15px solid transparent',
+                borderRight: '15px solid transparent',
+                borderTop: '25px solid #e74c3c',
+              }}
+            />
+          </div>
 
-              // Skip tiny wedges (less than 1 degree)
-              if (wedge.angle < 1) return null;
+          {/* Wheel SVG */}
+          <svg
+            width={size}
+            height={size}
+            viewBox={`0 0 ${size} ${size}`}
+            className="drop-shadow-xl"
+          >
+            {/* Outer ring */}
+            <circle
+              cx={center}
+              cy={center}
+              r={radius + 6}
+              fill="none"
+              stroke="#374151"
+              strokeWidth="10"
+              className="dark:stroke-zinc-600"
+            />
 
-              return (
-                <g key={wedge.token}>
-                  {/* Wedge path */}
-                  <path
-                    d={createWedgePath(
-                      center,
-                      center,
-                      radius,
-                      wedge.startAngle,
-                      wedge.endAngle
-                    )}
-                    fill={color}
-                    stroke="#1F2937"
-                    strokeWidth="1.5"
-                    style={{
-                      filter: isSelected
-                        ? 'brightness(1.2)'
-                        : isChosen
-                          ? 'brightness(1.1)'
-                          : 'none',
-                      cursor:
-                        disabled || isSpinning ? 'not-allowed' : 'pointer',
-                      transition: 'filter 0.2s ease',
-                    }}
-                    onClick={() => handleWedgeClick(wedge.token)}
-                    onMouseEnter={(e) => {
-                      if (!isSpinning && !disabled) {
-                        e.currentTarget.style.filter = 'brightness(1.15)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.filter = isSelected
-                        ? 'brightness(1.2)'
-                        : isChosen
-                          ? 'brightness(1.1)'
-                          : 'none';
-                    }}
-                  />
+            {/* Spinning wheel group - using CSS transform */}
+            <g
+              style={{
+                transform: `rotate(${rotation}deg)`,
+                transformOrigin: `${center}px ${center}px`,
+                transition: isSpinning
+                  ? 'transform 4s cubic-bezier(0.15, 0.5, 0.2, 1)'
+                  : 'none',
+              }}
+            >
+              {/* Wedges */}
+              {wedges.map((wedge, index) => {
+                const isSelected = selectedToken === wedge.token;
+                const isChosen = wedge.token === chosenToken;
+                const color = WEDGE_COLORS[index % WEDGE_COLORS.length];
 
-                  {/* Wedge label (only for wedges > 20 degrees) */}
-                  {wedge.angle > 20 && (
-                    <text
-                      x={
-                        center +
-                        radius *
-                          0.65 *
-                          Math.cos(
-                            ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
-                              (Math.PI / 180)
-                          )
-                      }
-                      y={
-                        center +
-                        radius *
-                          0.65 *
-                          Math.sin(
-                            ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
-                              (Math.PI / 180)
-                          )
-                      }
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fill="white"
-                      fontSize={wedge.angle > 40 ? 14 : 11}
-                      fontWeight="600"
-                      className="pointer-events-none select-none"
-                      style={{
-                        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                      }}
-                    >
-                      {formatTokenForDisplay(wedge.token)}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
+                // Skip tiny wedges (less than 1 degree)
+                if (wedge.angle < 1) return null;
 
-            {/* Highlight glow for chosen token - rendered after all wedges so it's always on top */}
-            {!isSpinning &&
-              wedges.map((wedge) => {
-                if (wedge.token !== chosenToken || wedge.angle < 1) return null;
                 return (
-                  <path
-                    key={`highlight-${wedge.token}`}
-                    d={createWedgePath(
-                      center,
-                      center,
-                      radius,
-                      wedge.startAngle,
-                      wedge.endAngle
+                  <g key={wedge.token}>
+                    {/* Wedge path */}
+                    <path
+                      d={createWedgePath(
+                        center,
+                        center,
+                        radius,
+                        wedge.startAngle,
+                        wedge.endAngle
+                      )}
+                      fill={color}
+                      stroke="#1F2937"
+                      strokeWidth="1.5"
+                      style={{
+                        filter: isSelected
+                          ? 'brightness(1.2)'
+                          : isChosen
+                            ? 'brightness(1.1)'
+                            : 'none',
+                        cursor:
+                          disabled || isSpinning ? 'not-allowed' : 'pointer',
+                        transition: 'filter 0.2s ease',
+                      }}
+                      onClick={() => handleWedgeClick(wedge.token)}
+                      onMouseEnter={(e) => {
+                        if (!isSpinning && !disabled) {
+                          e.currentTarget.style.filter = 'brightness(1.15)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.filter = isSelected
+                          ? 'brightness(1.2)'
+                          : isChosen
+                            ? 'brightness(1.1)'
+                            : 'none';
+                      }}
+                    />
+
+                    {/* Wedge label (only for wedges > 20 degrees) */}
+                    {wedge.angle > 20 && (
+                      <text
+                        x={
+                          center +
+                          radius *
+                            0.65 *
+                            Math.cos(
+                              ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
+                                (Math.PI / 180)
+                            )
+                        }
+                        y={
+                          center +
+                          radius *
+                            0.65 *
+                            Math.sin(
+                              ((wedge.startAngle + wedge.endAngle) / 2 - 90) *
+                                (Math.PI / 180)
+                            )
+                        }
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="white"
+                        fontSize={wedge.angle > 40 ? 14 : 11}
+                        fontWeight="600"
+                        className="pointer-events-none select-none"
+                        style={{
+                          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                        }}
+                      >
+                        {formatTokenForDisplay(wedge.token)}
+                      </text>
                     )}
-                    fill="none"
-                    stroke="#fbbf24"
-                    strokeWidth="4"
-                    className="pulse-glow pointer-events-none"
-                  />
+                  </g>
                 );
               })}
-          </g>
 
-          {/* Center circle */}
-          <circle
-            cx={center}
-            cy={center}
-            r={innerRadius}
-            fill="#1F2937"
-            className="dark:fill-zinc-800"
-            stroke="#374151"
-            strokeWidth="3"
-          />
+              {/* Highlight glow for chosen token - rendered after all wedges so it's always on top */}
+              {!isSpinning &&
+                wedges.map((wedge) => {
+                  if (wedge.token !== chosenToken || wedge.angle < 1)
+                    return null;
+                  return (
+                    <path
+                      key={`highlight-${wedge.token}`}
+                      d={createWedgePath(
+                        center,
+                        center,
+                        radius,
+                        wedge.startAngle,
+                        wedge.endAngle
+                      )}
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="4"
+                      className="pulse-glow pointer-events-none"
+                    />
+                  );
+                })}
+            </g>
 
-          {/* Center button */}
-          <circle
-            cx={center}
-            cy={center}
-            r={innerRadius - 5}
-            fill={isSpinning ? '#4B5563' : '#3B82F6'}
-            style={{
-              cursor: isSpinning || disabled ? 'not-allowed' : 'pointer',
-              transition: 'fill 0.2s ease',
-            }}
-            onClick={handleSpin}
-            onMouseEnter={(e) => {
-              if (!isSpinning && !disabled) {
-                e.currentTarget.style.fill = '#60a5fa';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.fill = isSpinning ? '#4B5563' : '#3B82F6';
-            }}
-          />
+            {/* Center circle */}
+            <circle
+              cx={center}
+              cy={center}
+              r={innerRadius}
+              fill="#1F2937"
+              className="dark:fill-zinc-800"
+              stroke="#374151"
+              strokeWidth="3"
+            />
 
-          {/* Spin text */}
-          <text
-            x={center}
-            y={center}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="white"
-            fontSize="16"
-            fontWeight="700"
-            className="pointer-events-none select-none"
-          >
-            {isSpinning ? '...' : 'SPIN'}
-          </text>
-        </svg>
+            {/* Center button */}
+            <circle
+              cx={center}
+              cy={center}
+              r={innerRadius - 5}
+              fill={isSpinning ? '#4B5563' : '#3B82F6'}
+              style={{
+                cursor: isSpinning || disabled ? 'not-allowed' : 'pointer',
+                transition: 'fill 0.2s ease',
+              }}
+              onClick={handleSpin}
+              onMouseEnter={(e) => {
+                if (!isSpinning && !disabled) {
+                  e.currentTarget.style.fill = '#60a5fa';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.fill = isSpinning ? '#4B5563' : '#3B82F6';
+              }}
+            />
+
+            {/* Spin text */}
+            <text
+              x={center}
+              y={center}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill="white"
+              fontSize="16"
+              fontWeight="700"
+              className="pointer-events-none select-none"
+            >
+              {isSpinning ? '...' : 'SPIN'}
+            </text>
+          </svg>
+        </div>
+
+        {/* Token Legend */}
+        <TokenLegend
+          wedges={wedges}
+          chosenToken={chosenToken}
+          selectedToken={selectedToken}
+          onTokenClick={handleWedgeClick}
+          disabled={isSpinning || disabled}
+        />
       </div>
 
-      {/* Token Legend */}
-      <div className="w-full max-w-md">
-        <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-2 text-center">
-          <span className="inline-flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            Highlighted = AI&apos;s choice
-          </span>
-          {' · '}
-          Click a wedge or SPIN
-        </div>
-        <div className="flex flex-wrap gap-1 justify-center">
-          {wedges.slice(0, 8).map((wedge, index) => {
-            const isChosen = wedge.token === chosenToken;
-            return (
-              <button
-                key={wedge.token}
-                onClick={() => handleWedgeClick(wedge.token)}
-                disabled={isSpinning || disabled}
-                className={`
-                  flex items-center gap-1 px-2 py-1 rounded text-xs
-                  transition-all duration-200
-                  ${
-                    isChosen
-                      ? 'ring-2 ring-amber-400 ring-offset-1 bg-amber-50 dark:bg-amber-950'
-                      : ''
-                  }
-                  ${
-                    selectedToken === wedge.token
-                      ? 'ring-2 ring-blue-500 ring-offset-1'
-                      : ''
-                  }
-                  ${
-                    isSpinning || disabled
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer'
-                  }
-                `}
-              >
-                <span
-                  className="w-3 h-3 rounded-sm shrink-0"
-                  style={{
-                    backgroundColor: WEDGE_COLORS[index % WEDGE_COLORS.length],
-                  }}
-                />
-                <span className="font-mono text-zinc-700 dark:text-zinc-300 truncate max-w-20">
-                  {formatTokenForDisplay(wedge.token)}
-                </span>
-                <span className="text-zinc-400 dark:text-zinc-500">
-                  {(wedge.probability * 100).toFixed(0)}%
-                </span>
-                {isChosen && (
-                  <span className="text-amber-500 text-[10px]">AI</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      {/* Help text */}
+      <div className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          Highlighted = AI&apos;s choice
+        </span>
+        {' · '}
+        Click a wedge or SPIN
       </div>
     </div>
   );

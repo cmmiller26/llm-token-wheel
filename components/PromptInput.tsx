@@ -1,16 +1,11 @@
+import { QUICK_PROMPTS } from '@/lib/constants';
+
 interface PromptInputProps {
   prompt: string;
   onPromptChange: (prompt: string) => void;
   onStart: () => void;
   disabled?: boolean;
 }
-
-const QUICK_PROMPTS = [
-  'The cat sat on the',
-  'Once upon a time',
-  'In a world where',
-  'She opened the door and',
-];
 
 export default function PromptInput({
   prompt,
