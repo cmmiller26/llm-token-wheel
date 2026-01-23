@@ -1,7 +1,6 @@
 interface BuiltTextDisplayProps {
   prompt: string;
   selectedTokens: string[];
-  ghostToken?: string;
   showCursor?: boolean;
   showUndo?: boolean;
   onUndo?: () => void;
@@ -11,7 +10,6 @@ interface BuiltTextDisplayProps {
 export default function BuiltTextDisplay({
   prompt,
   selectedTokens,
-  ghostToken,
   showCursor = true,
   showUndo = false,
   onUndo,
@@ -49,11 +47,6 @@ export default function BuiltTextDisplay({
         <span className="text-zinc-900 dark:text-zinc-100 font-medium">
           {selectedTokens.join('')}
         </span>
-        {ghostToken && (
-          <span className="text-blue-500 dark:text-blue-400 font-medium animate-pulse">
-            {ghostToken}
-          </span>
-        )}
         {showCursor && (
           <span className="inline-block w-0.5 h-5 bg-blue-500 ml-0.5 animate-pulse align-middle" />
         )}

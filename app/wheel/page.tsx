@@ -4,7 +4,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import TokenWheel from '@/components/TokenWheel';
 import BuiltTextDisplay from '@/components/BuiltTextDisplay';
-import GhostConfirmation from '@/components/GhostConfirmation';
 import CompletionBanner from '@/components/CompletionBanner';
 import Header from '@/components/Header';
 import { stitchToken, stitchTokens } from '@/lib/utils';
@@ -25,12 +24,6 @@ let generationIdCounter = 0;
 type AppState =
   | { type: 'loading' }
   | { type: 'spinning'; generation: GenerationData; position: number }
-  | {
-      type: 'ghost';
-      generation: GenerationData;
-      position: number;
-      ghostToken: string;
-    }
   | { type: 'complete' };
 
 type UndoEntry = {
@@ -74,14 +67,8 @@ export default function WheelPage() {
   promptRef.current = prompt;
 
   // Extract generation data and position from state
-  const generation =
-    appState.type === 'spinning' || appState.type === 'ghost'
-      ? appState.generation
-      : null;
-  const currentPosition =
-    appState.type === 'spinning' || appState.type === 'ghost'
-      ? appState.position
-      : 0;
+  const generation = appState.type === 'spinning' ? appState.generation : null;
+  const currentPosition = appState.type === 'spinning' ? appState.position : 0;
 
   const currentChosenToken = generation?.tokens[currentPosition] ?? '';
   const currentLogprobs =
@@ -169,93 +156,72 @@ export default function WheelPage() {
   }, [prompt, appState.type, selectedTokens.length, generate]);
 
   // Handle token selection from the wheel
-  const handleTokenSelect = useCallback((token: string) => {
-    const currentAppState = appStateRef.current;
-    if (currentAppState.type !== 'spinning') return;
+  const handleTokenSelect = useCallback(
+    async (token: string) => {
+      const currentAppState = appStateRef.current;
+      if (currentAppState.type !== 'spinning') return;
 
-    const { generation: gen, position } = currentAppState;
-    const chosenToken = gen.tokens[position];
+      const { generation: gen, position } = currentAppState;
+      const chosenToken = gen.tokens[position];
 
-    if (token === chosenToken) {
-      const currentSelectedTokens = selectedTokensRef.current;
-      const currentBuiltText = builtTextRef.current;
-      const newSelectedTokens = [...currentSelectedTokens, token];
-      const newBuiltText = stitchToken(currentBuiltText, token);
+      if (token === chosenToken) {
+        // Token matches AI choice - proceed normally
+        const currentSelectedTokens = selectedTokensRef.current;
+        const currentBuiltText = builtTextRef.current;
+        const newSelectedTokens = [...currentSelectedTokens, token];
+        const newBuiltText = stitchToken(currentBuiltText, token);
 
-      setUndoStack((prev) => [
-        ...prev,
-        { type: 'normal', previousGeneration: gen, previousPosition: position },
-      ]);
-      setSelectedTokens(newSelectedTokens);
-      setBuiltText(newBuiltText);
+        setUndoStack((prev) => [
+          ...prev,
+          {
+            type: 'normal',
+            previousGeneration: gen,
+            previousPosition: position,
+          },
+        ]);
+        setSelectedTokens(newSelectedTokens);
+        setBuiltText(newBuiltText);
 
-      if (position + 1 >= gen.tokens.length) {
-        setAppState({ type: 'complete' });
+        if (position + 1 >= gen.tokens.length) {
+          setAppState({ type: 'complete' });
+        } else {
+          setAppState({
+            type: 'spinning',
+            generation: gen,
+            position: position + 1,
+          });
+        }
       } else {
-        setAppState({
-          type: 'spinning',
-          generation: gen,
-          position: position + 1,
-        });
+        // Token differs from AI choice - regenerate from this point
+        const currentSelectedTokens = selectedTokensRef.current;
+        const currentBuiltText = builtTextRef.current;
+        const newSelectedTokens = [...currentSelectedTokens, token];
+        const newBuiltText = stitchToken(currentBuiltText, token);
+        const newPrompt = newBuiltText;
+
+        setUndoStack((prev) => [
+          ...prev,
+          {
+            type: 'ghost',
+            previousGeneration: gen,
+            previousPosition: position,
+          },
+        ]);
+
+        const newGen = await generate(newPrompt);
+        if (newGen) {
+          setSelectedTokens(newSelectedTokens);
+          setBuiltText(newBuiltText);
+          setAppState({ type: 'spinning', generation: newGen, position: 0 });
+        }
       }
-    } else {
-      setAppState({
-        type: 'ghost',
-        generation: gen,
-        position,
-        ghostToken: token,
-      });
-    }
-  }, []);
-
-  // Confirm ghost selection and regenerate
-  const handleGhostConfirm = useCallback(async () => {
-    const currentAppState = appStateRef.current;
-    if (currentAppState.type !== 'ghost') return;
-
-    const {
-      generation: prevGen,
-      position: prevPos,
-      ghostToken,
-    } = currentAppState;
-    const currentSelectedTokens = selectedTokensRef.current;
-    const currentBuiltText = builtTextRef.current;
-    const newSelectedTokens = [...currentSelectedTokens, ghostToken];
-    const newBuiltText = stitchToken(currentBuiltText, ghostToken);
-    const newPrompt = newBuiltText;
-
-    setUndoStack((prev) => [
-      ...prev,
-      { type: 'ghost', previousGeneration: prevGen, previousPosition: prevPos },
-    ]);
-
-    const gen = await generate(newPrompt);
-    if (gen) {
-      setSelectedTokens(newSelectedTokens);
-      setBuiltText(newBuiltText);
-      setAppState({ type: 'spinning', generation: gen, position: 0 });
-    }
-  }, [generate]);
-
-  // Cancel ghost selection
-  const handleGhostCancel = useCallback(() => {
-    const currentAppState = appStateRef.current;
-    if (currentAppState.type !== 'ghost') return;
-    const { generation: gen, position } = currentAppState;
-    setAppState({ type: 'spinning', generation: gen, position });
-  }, []);
+    },
+    [generate]
+  );
 
   // Undo last token selection
   const handleUndo = useCallback(() => {
-    const currentAppState = appStateRef.current;
     const currentPrompt = promptRef.current;
-
-    if (currentAppState.type === 'ghost') {
-      const { generation: gen, position } = currentAppState;
-      setAppState({ type: 'spinning', generation: gen, position });
-      return;
-    }
-
     const currentUndoStack = undoStackRef.current;
     const currentSelectedTokens = selectedTokensRef.current;
 
@@ -331,28 +297,14 @@ export default function WheelPage() {
         )}
 
         {/* Built Text Display */}
-        {(appState.type === 'spinning' ||
-          appState.type === 'ghost' ||
-          appState.type === 'complete') && (
+        {(appState.type === 'spinning' || appState.type === 'complete') && (
           <BuiltTextDisplay
             prompt={prompt}
             selectedTokens={selectedTokens}
-            ghostToken={
-              appState.type === 'ghost' ? appState.ghostToken : undefined
-            }
             showCursor={appState.type !== 'complete'}
             showUndo={undoStack.length > 0}
             onUndo={handleUndo}
             onReset={handleReset}
-          />
-        )}
-
-        {/* Ghost Mode Confirmation */}
-        {appState.type === 'ghost' && (
-          <GhostConfirmation
-            ghostToken={appState.ghostToken}
-            onConfirm={handleGhostConfirm}
-            onCancel={handleGhostCancel}
           />
         )}
 
