@@ -32,16 +32,16 @@ export default function SettingsPanel({
     100;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg mb-6 overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-zinc-100 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
       <button
         onClick={onToggle}
-        className="w-full px-6 py-3 flex items-center justify-between text-left hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+        className="flex w-full items-center justify-between px-6 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
       >
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           Settings
         </span>
         <svg
-          className={`w-5 h-5 text-zinc-400 transition-transform ${
+          className={`h-5 w-5 text-zinc-400 transition-transform ${
             isOpen ? 'rotate-180' : ''
           }`}
           fill="none"
@@ -58,10 +58,10 @@ export default function SettingsPanel({
       </button>
 
       {isOpen && (
-        <div className="px-6 pb-4 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="border-t border-zinc-100 px-6 pb-4 dark:border-zinc-800">
           {/* Temperature Slider */}
           <div className="pt-4">
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Temperature:{' '}
                 <span className="text-zinc-500 dark:text-zinc-400">
@@ -72,7 +72,7 @@ export default function SettingsPanel({
                 <button
                   onClick={() => onTemperatureChange(DEFAULT_TEMPERATURE)}
                   disabled={disabled}
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-xs text-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   Reset
                 </button>
@@ -89,16 +89,16 @@ export default function SettingsPanel({
               style={{
                 background: `linear-gradient(to right, var(--range-fill) 0%, var(--range-fill) ${temperaturePercent}%, var(--range-track) ${temperaturePercent}%, var(--range-track) 100%)`,
               }}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed accent-blue-600 [--range-fill:#2563eb] [--range-track:#e5e7eb] dark:[--range-fill:#60a5fa] dark:[--range-track:#3f3f46]"
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg accent-blue-600 [--range-fill:#2563eb] [--range-track:#e5e7eb] disabled:cursor-not-allowed disabled:opacity-50 dark:[--range-fill:#60a5fa] dark:[--range-track:#3f3f46]"
             />
-            <div className="flex justify-between text-xs text-zinc-400 dark:text-zinc-500 mt-2">
+            <div className="mt-2 flex justify-between text-xs text-zinc-400 dark:text-zinc-500">
               <span>Precise</span>
               <span>Creative</span>
             </div>
           </div>
 
           {/* System Instruction */}
-          <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             <div className="flex items-center justify-between text-sm font-medium text-zinc-700 dark:text-zinc-300">
               <span>
                 System Instruction
@@ -114,7 +114,7 @@ export default function SettingsPanel({
                     onSystemInstructionChange(DEFAULT_SYSTEM_INSTRUCTION)
                   }
                   disabled={disabled}
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-xs text-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   Reset
                 </button>
@@ -126,7 +126,7 @@ export default function SettingsPanel({
                 onChange={(e) => onSystemInstructionChange(e.target.value)}
                 disabled={disabled}
                 rows={8}
-                className="w-full px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-y"
+                className="w-full resize-y rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
                 placeholder="Enter system instruction..."
               />
             </div>

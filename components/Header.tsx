@@ -1,7 +1,7 @@
 export default function Header() {
   return (
-    <div className="text-center mb-8">
-      <div className="flex items-center justify-center gap-3 mb-2">
+    <div className="mt-6 mb-6 text-center">
+      <div className="mb-2 flex items-center justify-center gap-3">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
           LLM Token Wheel
         </h1>
