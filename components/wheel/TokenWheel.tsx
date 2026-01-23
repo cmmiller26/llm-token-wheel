@@ -28,6 +28,7 @@ interface TokenWheelProps {
   onTokenSelect: (token: string) => void;
   onSelectedTokenChange?: (token: string | null) => void;
   onWedgesChange?: (wedges: WedgeData[]) => void;
+  onDivergingTokenClick?: (token: string) => void;
   disabled?: boolean;
   currentPosition?: number;
   totalPositions?: number;
@@ -41,6 +42,7 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
       onTokenSelect,
       onSelectedTokenChange,
       onWedgesChange,
+      onDivergingTokenClick,
       disabled = false,
       currentPosition,
       totalPositions,
@@ -58,6 +60,7 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
     // Refs to always access latest values in callbacks (avoids stale closures)
     const chosenTokenRef = useRef(chosenToken);
     const onTokenSelectRef = useRef(onTokenSelect);
+    const onDivergingTokenClickRef = useRef(onDivergingTokenClick);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const popupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mountedRef = useRef(true);
@@ -66,7 +69,8 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
     useEffect(() => {
       chosenTokenRef.current = chosenToken;
       onTokenSelectRef.current = onTokenSelect;
-    }, [chosenToken, onTokenSelect]);
+      onDivergingTokenClickRef.current = onDivergingTokenClick;
+    }, [chosenToken, onTokenSelect, onDivergingTokenClick]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -212,6 +216,12 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
     const handleWedgeClick = useCallback(
       (token: string) => {
         if (isSpinning || disabled) return;
+
+        // Immediately notify parent if diverging token (for eager regeneration)
+        if (token !== chosenTokenRef.current && onDivergingTokenClickRef.current) {
+          onDivergingTokenClickRef.current(token);
+        }
+
         setSelectedToken(token);
         setShowResultPopup(true);
 
