@@ -278,73 +278,69 @@ export default function WheelPage() {
     wheelRef.current?.triggerWedgeClick(token);
   }, []);
 
-  // Show loading while checking for prompt
-  if (prompt === null) {
-    return (
-      <div className="min-h-screen bg-linear-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900">
-        <div className="mx-auto max-w-2xl px-4 py-8">
-          <div className="rounded-xl bg-white p-8 text-center shadow-lg dark:bg-zinc-900">
-            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-            <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 bg-zinc-50 dark:bg-zinc-950">
+    <div className="mx-auto min-h-screen max-w-3xl bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      {/* Error Display */}
-      {error && <ErrorDisplay message={error} />}
+      <div className="flex flex-col gap-4">
+        {prompt === null ? (
+          <LoadingState />
+        ) : (
+          <>
+            {/* Error Display */}
+            {error && <ErrorDisplay message={error} />}
 
-      {/* Loading State */}
-      {appState.type === 'loading' && <LoadingState />}
+            {/* Loading State */}
+            {appState.type === 'loading' && (
+              <LoadingState message="Generating tokens..." />
+            )}
 
-      {/* Built Text Display - spans full width */}
-      {(appState.type === 'spinning' || appState.type === 'complete') && (
-        <BuiltTextDisplay
-          prompt={prompt}
-          selectedTokens={selectedTokens}
-          showCursor={appState.type !== 'complete'}
-          showUndo={undoStack.length > 0}
-          onUndo={handleUndo}
-          onReset={handleReset}
-        />
-      )}
+            {/* Built Text Display - spans full width */}
+            {(appState.type === 'spinning' || appState.type === 'complete') && (
+              <BuiltTextDisplay
+                prompt={prompt}
+                selectedTokens={selectedTokens}
+                showCursor={appState.type !== 'complete'}
+                showUndo={undoStack.length > 0}
+                onUndo={handleUndo}
+                onReset={handleReset}
+              />
+            )}
 
-      {/* Token Wheel and Legend - side by side on large screens */}
-      {appState.type === 'spinning' && currentLogprobs && (
-        <div className="flex flex-col gap-4 lg:flex-row">
-          <TokenWheel
-            ref={wheelRef}
-            key={`${generation?.id}-${currentPosition}`}
-            logprobs={currentLogprobs}
-            chosenToken={currentChosenToken}
-            onTokenSelect={handleTokenSelect}
-            onSelectedTokenChange={setLegendSelectedToken}
-            onWedgesChange={setLegendWedges}
-            currentPosition={currentPosition + 1}
-            totalPositions={generation?.tokens.length}
-          />
-          <TokenLegend
-            wedges={legendWedges}
-            selectedToken={legendSelectedToken}
-            onTokenClick={handleLegendClick}
-            disabled={appState.type !== 'spinning'}
-          />
-        </div>
-      )}
+            {/* Token Wheel and Legend - side by side on large screens */}
+            {appState.type === 'spinning' && currentLogprobs && (
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <TokenWheel
+                  ref={wheelRef}
+                  key={`${generation?.id}-${currentPosition}`}
+                  logprobs={currentLogprobs}
+                  chosenToken={currentChosenToken}
+                  onTokenSelect={handleTokenSelect}
+                  onSelectedTokenChange={setLegendSelectedToken}
+                  onWedgesChange={setLegendWedges}
+                  currentPosition={currentPosition + 1}
+                  totalPositions={generation?.tokens.length}
+                />
+                <TokenLegend
+                  wedges={legendWedges}
+                  selectedToken={legendSelectedToken}
+                  onTokenClick={handleLegendClick}
+                  disabled={appState.type !== 'spinning'}
+                />
+              </div>
+            )}
 
-      {/* Complete State */}
-      {appState.type === 'complete' && (
-        <CompletionBanner
-          tokenCount={selectedTokens.length}
-          onReset={handleReset}
-          onContinue={handleContinue}
-        />
-      )}
+            {/* Complete State */}
+            {appState.type === 'complete' && (
+              <CompletionBanner
+                tokenCount={selectedTokens.length}
+                onReset={handleReset}
+                onContinue={handleContinue}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       <Footer />
     </div>
