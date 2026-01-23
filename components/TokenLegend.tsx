@@ -1,12 +1,7 @@
 'use client';
 
-import { formatTokenForDisplay } from '@/lib/utils';
+import { formatTokenForDisplay, WedgeData } from '@/lib/utils';
 import { WEDGE_COLORS } from '@/lib/constants';
-
-interface WedgeData {
-  token: string;
-  probability: number;
-}
 
 interface TokenLegendProps {
   wedges: WedgeData[];
