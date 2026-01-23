@@ -6,6 +6,7 @@ import TokenWheel from '@/components/TokenWheel';
 import BuiltTextDisplay from '@/components/BuiltTextDisplay';
 import GhostConfirmation from '@/components/GhostConfirmation';
 import CompletionBanner from '@/components/CompletionBanner';
+import Header from '@/components/Header';
 import { stitchToken, stitchTokens } from '@/lib/utils';
 import {
   DEFAULT_TEMPERATURE,
@@ -310,15 +311,7 @@ export default function WheelPage() {
   return (
     <div className="min-h-screen bg-linear-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-            Token Wheel
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Explore how AI generates text, one token at a time
-          </p>
-        </div>
+        <Header />
 
         {/* Error Display */}
         {error && (
@@ -348,6 +341,9 @@ export default function WheelPage() {
               appState.type === 'ghost' ? appState.ghostToken : undefined
             }
             showCursor={appState.type !== 'complete'}
+            showUndo={undoStack.length > 0}
+            onUndo={handleUndo}
+            onReset={handleReset}
           />
         )}
 
@@ -363,16 +359,13 @@ export default function WheelPage() {
         {/* Token Wheel */}
         {appState.type === 'spinning' && currentLogprobs && (
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 mb-6">
-            <div className="text-center mb-4">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                Position {currentPosition + 1} of {generation?.tokens.length}
-              </span>
-            </div>
             <TokenWheel
               key={`${generation?.id}-${currentPosition}`}
               logprobs={currentLogprobs}
               chosenToken={currentChosenToken}
               onTokenSelect={handleTokenSelect}
+              currentPosition={currentPosition + 1}
+              totalPositions={generation?.tokens.length}
             />
           </div>
         )}
@@ -384,28 +377,6 @@ export default function WheelPage() {
             onReset={handleReset}
             onContinue={handleContinue}
           />
-        )}
-
-        {/* Controls */}
-        {(appState.type === 'spinning' ||
-          appState.type === 'ghost' ||
-          appState.type === 'complete') && (
-          <div className="text-center space-x-4">
-            {undoStack.length > 0 && (
-              <button
-                onClick={handleUndo}
-                className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 underline"
-              >
-                Undo
-              </button>
-            )}
-            <button
-              onClick={handleReset}
-              className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 underline"
-            >
-              Start over with a new prompt
-            </button>
-          </div>
         )}
 
         {/* Footer */}

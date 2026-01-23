@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import PromptInput from '@/components/PromptInput';
 import SettingsPanel from '@/components/SettingsPanel';
+import Header from '@/components/Header';
 import {
   DEFAULT_TEMPERATURE,
   DEFAULT_SYSTEM_INSTRUCTION,
@@ -79,15 +80,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-linear-to-b from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-            Token Wheel
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Explore how AI generates text, one token at a time
-          </p>
-        </div>
+        <Header />
 
         {/* Input Section */}
         <PromptInput
