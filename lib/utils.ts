@@ -6,6 +6,8 @@
  * We simply concatenate tokens directly.
  */
 
+import { WEDGE_COLORS } from './constants';
+
 /**
  * Appends a token to context.
  * Gemini tokens already include proper spacing, so we just concatenate.
@@ -65,6 +67,19 @@ export interface WedgeData {
   angle: number;
   startAngle: number;
   endAngle: number;
+  color: string;
+}
+
+/**
+ * Fisher-Yates shuffle algorithm
+ */
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
 /**
@@ -80,9 +95,12 @@ export function convertLogprobsToWedges(
     .map(([token, probability]) => ({ token, probability }))
     .sort((a, b) => b.probability - a.probability);
 
+  // Shuffle colors for random assignment
+  const shuffledColors = shuffleArray(WEDGE_COLORS);
+
   // Calculate angles
   let currentAngle = 0;
-  return sorted.map(({ token, probability }) => {
+  return sorted.map(({ token, probability }, index) => {
     const angle = probability * 360;
     const startAngle = currentAngle;
     const endAngle = currentAngle + angle;
@@ -94,6 +112,7 @@ export function convertLogprobsToWedges(
       angle,
       startAngle,
       endAngle,
+      color: shuffledColors[index % shuffledColors.length],
     };
   });
 }

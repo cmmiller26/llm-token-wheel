@@ -16,7 +16,6 @@ import {
   calculateTargetRotation,
   WedgeData,
 } from '@/lib/utils';
-import { WEDGE_COLORS } from '@/lib/constants';
 
 export interface TokenWheelHandle {
   triggerWedgeClick: (token: string) => void;
@@ -218,7 +217,10 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
         if (isSpinning || disabled) return;
 
         // Immediately notify parent if diverging token (for eager regeneration)
-        if (token !== chosenTokenRef.current && onDivergingTokenClickRef.current) {
+        if (
+          token !== chosenTokenRef.current &&
+          onDivergingTokenClickRef.current
+        ) {
           onDivergingTokenClickRef.current(token);
         }
 
@@ -322,7 +324,7 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
                   fill="none"
                   stroke="#374151"
                   strokeWidth="10"
-                  className="dark:stroke-zinc-600"
+                  className="stroke-zinc-400 dark:stroke-zinc-600"
                 />
 
                 {/* Spinning wheel group - using CSS transform */}
@@ -337,9 +339,9 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
                   }}
                 >
                   {/* Wedges */}
-                  {wedges.map((wedge, index) => {
+                  {wedges.map((wedge) => {
                     const isSelected = selectedToken === wedge.token;
-                    const color = WEDGE_COLORS[index % WEDGE_COLORS.length];
+                    const color = wedge.color;
 
                     // Skip tiny wedges (less than 1 degree)
                     if (wedge.angle < 1) return null;
@@ -433,7 +435,7 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
                   cx={center}
                   cy={center}
                   r={innerRadius - 5}
-                  fill={isSpinning ? '#4B5563' : '#3B82F6'}
+                  fill={isSpinning ? '#4B5563' : '#155DFC'}
                   style={{
                     cursor: disabled ? 'not-allowed' : 'pointer',
                     transition: 'fill 0.2s ease',
@@ -473,15 +475,15 @@ const TokenWheel = forwardRef<TokenWheelHandle, TokenWheelProps>(
                 className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center"
                 onClick={dismissPopupAndProceed}
               >
-                <div className="animate-popup rounded-xl border-2 border-blue-300 bg-blue-50 p-6 shadow-lg dark:border-blue-700 dark:bg-blue-950">
+                <div className="animate-popup rounded-xl border-2 border-yellow-900 bg-yellow-400 p-6 shadow-lg dark:border-yellow-100 dark:bg-yellow-600">
                   <div className="text-center">
-                    <div className="mb-2 text-sm text-blue-600 dark:text-blue-400">
+                    <div className="mb-2 text-sm text-yellow-950 dark:text-yellow-50">
                       Selected Token
                     </div>
-                    <div className="font-mono text-3xl font-bold text-blue-800 dark:text-blue-200">
+                    <div className="font-mono text-3xl font-bold text-yellow-800 dark:text-yellow-200">
                       {formatTokenForDisplay(selectedToken)}
                     </div>
-                    <div className="mt-3 text-xs text-blue-500 dark:text-blue-400">
+                    <div className="mt-3 text-xs text-yellow-950 dark:text-yellow-50">
                       Click or press Space to continue
                     </div>
                   </div>

@@ -89,7 +89,7 @@ export default function SettingsPanel({
               style={{
                 background: `linear-gradient(to right, var(--range-fill) 0%, var(--range-fill) ${temperaturePercent}%, var(--range-track) ${temperaturePercent}%, var(--range-track) 100%)`,
               }}
-              className="h-2 w-full cursor-pointer appearance-none rounded-lg accent-blue-600 [--range-fill:#2563eb] [--range-track:#e5e7eb] disabled:cursor-not-allowed disabled:opacity-50 dark:[--range-fill:#60a5fa] dark:[--range-track:#3f3f46]"
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg accent-blue-600 [--range-fill:#155dfc] [--range-track:#e4e4e7] disabled:cursor-not-allowed disabled:opacity-50 dark:[--range-track:#3f3f46]"
             />
             <div className="mt-2 flex justify-between text-xs text-zinc-400 dark:text-zinc-500">
               <span>Precise</span>

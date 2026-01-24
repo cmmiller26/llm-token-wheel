@@ -1,7 +1,6 @@
 'use client';
 
 import { formatTokenForDisplay, WedgeData } from '@/lib/utils';
-import { WEDGE_COLORS } from '@/lib/constants';
 
 interface TokenLegendProps {
   wedges: WedgeData[];
@@ -27,10 +26,10 @@ export default function TokenLegend({
           <button
             key={wedge.token}
             onClick={() => onTokenClick(wedge.token)}
-            disabled={disabled}
+            disabled={disabled || (selectedToken !== null && selectedToken !== wedge.token)}
             className={`flex items-center gap-2 rounded-lg bg-zinc-50 px-3 py-1.5 text-sm transition-all duration-200 dark:bg-zinc-800 ${
               selectedToken === wedge.token
-                ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-white dark:ring-offset-zinc-900'
+                ? 'ring-2 ring-yellow-500 ring-offset-1 ring-offset-white dark:ring-offset-zinc-900'
                 : ''
             } ${
               disabled
@@ -41,7 +40,7 @@ export default function TokenLegend({
             <span
               className="h-4 w-4 shrink-0 rounded"
               style={{
-                backgroundColor: WEDGE_COLORS[index % WEDGE_COLORS.length],
+                backgroundColor: wedge.color,
               }}
             />
             <span className="max-w-24 truncate font-mono text-zinc-700 dark:text-zinc-300">
