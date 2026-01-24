@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'LLM Token Wheel',
-  description: 'Built for the University of Iowa AI Fundamentals class',
+  description:
+    'A tool to visualize and analyze token usage in large language models.',
 };
 
 export default function RootLayout({
