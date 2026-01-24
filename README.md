@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LLM Token Wheel
+
+An interactive web application for exploring how large language models generate text, one token at a time. Visualize token probabilities on a spinning wheel and choose your own path through the generation process.
+
+## Features
+
+- **Token Probability Visualization**: See the probability distribution of possible next tokens displayed on an interactive wheel
+- **Interactive Token Selection**: Click on any token to select it - follow the AI's choice or pick an alternative
+- **Speculative Regeneration**: When hovering over divergent tokens, the app pre-fetches new generations for instant transitions
+- **Undo Support**: Step backwards through your token selections
+- **Customizable Settings**: Adjust temperature and system instructions to influence generation behavior
+- **Dark/Light Mode**: Toggle between themes for comfortable viewing
+
+## Tech Stack
+
+- **Framework**: [Next.js](https://nextjs.org) 16 with App Router
+- **Language**: TypeScript
+- **Styling**: [Tailwind CSS](https://tailwindcss.com) v4
+- **AI Model**: Google Gemini API (via `@google/generative-ai`)
+- **Theming**: next-themes
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+
+- A Google Gemini API key
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/cmmiller26/llm-token-wheel.git
+   cd llm-token-wheel
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+3. Create a `.env.local` file with your Gemini API key:
+   ```
+   GEMINI_API_KEY=your_api_key_here
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Usage
 
-## Deploy on Vercel
+1. Enter a text prompt on the home page
+2. Optionally adjust temperature and system instructions in the settings panel
+3. Click "Start" to begin generation
+4. Watch the wheel spin and see token probabilities
+5. Click on a token wedge to select it and continue
+6. Use the undo button to step back, or reset to start over
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
