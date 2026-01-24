@@ -271,7 +271,12 @@ export default function WheelPage() {
           const message = err instanceof Error ? err.message : 'Unknown error';
           setPendingRegen((current) => {
             if (current && current.token === token) {
-              return { ...current, resolved: true, result: null, error: message };
+              return {
+                ...current,
+                resolved: true,
+                result: null,
+                error: message,
+              };
             }
             return current;
           });
@@ -357,7 +362,11 @@ export default function WheelPage() {
             if (result) {
               setSelectedTokens(pending.newSelectedTokens);
               setBuiltText(pending.newBuiltText);
-              setAppState({ type: 'spinning', generation: result, position: 0 });
+              setAppState({
+                type: 'spinning',
+                generation: result,
+                position: 0,
+              });
             }
           } catch (err) {
             const message =

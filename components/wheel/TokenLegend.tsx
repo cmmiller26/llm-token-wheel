@@ -22,11 +22,14 @@ export default function TokenLegend({
       </h3>
       {/* Token buttons */}
       <div className="flex flex-col gap-2">
-        {wedges.slice(0, 8).map((wedge, index) => (
+        {wedges.slice(0, 8).map((wedge) => (
           <button
             key={wedge.token}
             onClick={() => onTokenClick(wedge.token)}
-            disabled={disabled || (selectedToken !== null && selectedToken !== wedge.token)}
+            disabled={
+              disabled ||
+              (selectedToken !== null && selectedToken !== wedge.token)
+            }
             className={`flex items-center gap-2 rounded-lg bg-zinc-50 px-3 py-1.5 text-sm transition-all duration-200 dark:bg-zinc-800 ${
               selectedToken === wedge.token
                 ? 'ring-2 ring-yellow-500 ring-offset-1 ring-offset-white dark:ring-offset-zinc-900'
