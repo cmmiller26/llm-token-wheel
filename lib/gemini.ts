@@ -40,7 +40,7 @@ export async function generateWithLogprobs({
   numLogprobs = 8,
 }: GenerationOptions): Promise<GenerationResult> {
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-2.0-flash',
   });
 
   const result = await model.generateContent({
